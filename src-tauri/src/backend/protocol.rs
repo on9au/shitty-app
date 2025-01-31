@@ -32,12 +32,14 @@ pub struct FileOffer {
     pub filename: String,
     pub unique_id: u64,
     pub size: u64,
+    pub chunk_len: u64,
 }
 
 #[derive(Debug, Serialize, Deserialize)]
 pub struct FileChunk {
     pub unique_id: u64,
     pub chunk_id: u64,
+    pub chunk_len: u64,
     pub data: Vec<u8>,
 }
 
