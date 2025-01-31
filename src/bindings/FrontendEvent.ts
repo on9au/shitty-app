@@ -9,4 +9,4 @@ import type { TransmitFile } from "./TransmitFile";
 /**
  * Enum of events that occur in the frontend and should be sent to the backend.
  */
-export type FrontendEvent = { "type": "ConnectRequest" } & ConnectRequest | { "type": "DisconnectRequest" } & DisconnectRequest | { "type": "ConnectionRequestResponse" } & ConnectionRequestResponse | { "type": "TransmitFile" } & TransmitFile | { "type": "FileOfferResponse" } & FileOfferResponse | { "type": "CancelFileTransfer" } & CancelFileTransfer;
+export type FrontendEvent = { "type": "ConnectRequest" } & ConnectRequest | { "type": "DisconnectRequest" } & DisconnectRequest | { "type": "ConnectionRequestResponse" } & ConnectionRequestResponse | { "type": "TransmitFile" } & TransmitFile | { "type": "FileOfferResponse" } & FileOfferResponse | { "type": "CancelFileTransfer" } & CancelFileTransfer | { "type": "Shutdown" };

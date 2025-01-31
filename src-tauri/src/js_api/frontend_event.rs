@@ -9,20 +9,23 @@ use std::ops::{Deref, DerefMut};
 #[serde(tag = "type")]
 #[ts(export)]
 pub enum FrontendEvent {
-    /// Request to connect to a peer.
+    /// New request: Request to connect to a peer.
     ConnectRequest(ConnectRequest),
-    /// Request to disconnect from a peer.
+    /// New request: Request to disconnect from an already connected peer.
     DisconnectRequest(DisconnectRequest),
 
-    /// Response to a receiving connection request.
+    /// Response: Response to a receiving connection request.
     ConnectionRequestResponse(ConnectionRequestResponse),
 
-    /// Transmit a file to the user.
+    /// New request: Transmit a file to the user.
     TransmitFile(TransmitFile),
-    /// Accept or reject a file offer.
+    /// Response: Accept or reject a file offer.
     FileOfferResponse(FileOfferResponse),
-    /// Cancel a file transfer.
+    /// New request: Cancel a file transfer.
     CancelFileTransfer(CancelFileTransfer),
+
+    /// Shutdown: Shutdown the backend gracefully.
+    Shutdown,
 }
 
 /// Struct representing a connection request.

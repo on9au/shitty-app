@@ -6,38 +6,38 @@ use ts_rs::TS;
 #[serde(tag = "type")]
 #[ts(export)]
 pub enum BackendEvent {
-    /// Backend error.
+    /// Error: Backend error.
     BackendError(BackendError),
-    /// Backend fatal/panic error. The backend will shut down after sending this.
+    /// Error: Backend fatal/panic error. The backend will shut down after sending this.
     BackendFatal(BackendFatal),
-    /// Backend is ready to receive messages.
-    /// If this is not sent, the frontend should assume the backend is not ready,
-    /// or should assume the backend or mpsc channel is failing (which will therefore fail the backend).
+    /// Info:  Backend is ready to receive messages.
+    ///         If this is not sent, the frontend should assume the backend is not ready,
+    ///         or should assume the backend or mpsc channel is failing after a given time.
     BackendReady,
-    /// Backend is shutting down gracefully.
+    /// Info:  Backend is shutting down gracefully.
     BackendShutdown,
-    /// Backend warning.
+    /// Warn:  Backend warning.
     BackendWarning(BackendWarning),
 
-    /// A connection request received from a peer.
+    /// Response Required: A connection request received from a peer.
     ConnectRequest(ConnectionInfo),
-    /// An automatic connection closure due to an error.
+    /// Notification:      An automatic connection closure due to an error.
     /// For example, invalid version, blacklisted IP/name, etc.
     AutoConnectionClose(ConnectionInfo),
-    /// A connection closure with a peer. Can be used as an acknowledgement of a disconnect request.
+    /// Warn:              A connection closure with a peer. Can be used as an acknowledgement of a disconnect request.
     ConnectionClose(ConnectionCloseOrBroken),
-    /// An unexpected connection closure with a peer. Unlike ConnectionClose, this is due to an error.
+    /// Warn:              An unexpected connection closure with a peer. Unlike ConnectionClose, this is due to an error.
     ConnectionBroken(ConnectionCloseOrBroken),
 
-    /// A file offer from the backend to the frontend.
+    /// Response Required: A file offer from the backend to the frontend.
     FileOffer(FileOffer),
-    /// A file transfer completion from the backend to the frontend.
+    /// Notification:      A file transfer completion from the backend to the frontend.
     FileTransferComplete(FileTransferComplete),
-    /// A file transfer error from the backend to the frontend.
+    /// Warn:              A file transfer error from the backend to the frontend.
     FileTransferError(FileTransferError),
-    /// A file transfer progress update from the backend to the frontend.
+    /// Progress Update:   A file transfer progress update from the backend to the frontend.
     FileTransferProgress(FileTransferProgress),
-    /// A general message from the backend to the frontend.
+    /// General Message:   A general message from the backend to the frontend.
     Message(BackendMessage),
 }
 
