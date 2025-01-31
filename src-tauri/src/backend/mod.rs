@@ -21,7 +21,12 @@ pub async fn init(
         .unwrap();
 
     loop {
-        // hlt
+        backend_event_tx
+            .send(js_api::backend_event::BackendEvent::Message(
+                "Test".to_string(),
+            ))
+            .await
+            .unwrap();
         tokio::time::sleep(tokio::time::Duration::from_secs(1)).await;
     }
 }

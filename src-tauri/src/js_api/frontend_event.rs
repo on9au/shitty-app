@@ -5,7 +5,6 @@ use std::ops::{Deref, DerefMut};
 
 /// Enum of events that occur in the frontend and should be sent to the backend.
 #[derive(Debug, Clone, Serialize, Deserialize)]
-#[serde(tag = "type")]
 pub enum FrontendEvent {
     /// Transmit a file to the user.
     TransmitFile(String),

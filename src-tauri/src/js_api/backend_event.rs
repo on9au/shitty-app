@@ -2,7 +2,6 @@ use serde::{Deserialize, Serialize};
 
 /// Enum of events that occur in the backend and should be sent to the frontend.
 #[derive(Debug, Clone, Serialize, Deserialize)]
-#[serde(tag = "type")]
 pub enum BackendEvent {
     /// Backend error.
     BackendError(String),
