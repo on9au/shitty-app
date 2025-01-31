@@ -65,7 +65,11 @@ pub fn run() {
         })
         // Do the rest of the Tauri setup
         .plugin(tauri_plugin_opener::init())
-        .invoke_handler(tauri::generate_handler![greet, is_name_cringe])
+        .invoke_handler(tauri::generate_handler![
+            greet,
+            is_name_cringe,
+            js_api::frontend_event::push_frontend_event
+        ])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");
 }

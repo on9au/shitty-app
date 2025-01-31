@@ -12,12 +12,31 @@
 //!   - The main thread receives the command and sends the [frontend_event::FrontendEvent] to the backend via the [crate::FrontendEventTx] mpsc channel.
 //!   - The [frontend_event::FrontendEvent] is received by the tokio-based backend and processed.
 //!
+//! **The function name is `push_frontend_event`.**
+//!
 //! ## Rust Calling into JS steps:
 //!
 //! - The tokio backend sends a [backend_event::BackendEvent] to backend_event_tx mpsc channel.
 //!   - The main thread receives the [backend_event::BackendEvent] and sends it to the frontend.
 //!   - The frontend receives the event and processes it.
 //!
+//! **The event is emitted as `backend_event` (string).**
+//!
+//! ## JS API JavaScript-ish Pseudo Code Example Thing[]:
+//!
+//! ```javascript
+//! // Backend Event Listener
+//! // Uses the Tauri `listen` function to listen for the Rust event `backend_event`.
+//! await listen('backend_event', (event) => { 4
+//!   console.log("js: rs2js: " + event)
+//!   let input = event.payload
+//!   inputs.value.push({ timestamp: Date.now(), message: input }) 5
+//! })
+//!
+//! // Frontend Event Emitter
+//! // Uses the Tauri `invoke` function to call the API function `push_frontend_event`.
+//! await invoke('push_frontend_event', { /* Data */ })
+//! ```
 
 pub mod backend_event;
 pub mod frontend_event;
