@@ -42,15 +42,8 @@ window.addEventListener("DOMContentLoaded", () => {
     funky();
   });
 });
-
-while (true) {
-  // Backend Event Listener
-  // Uses the Tauri `listen` function to listen for the Rust event `backend_event`.
-  let x = listen('backend_event', (event) => {
-    console.log("backend event: " + event)
-    let input = event.payload
-    console.log("backend event payload: " + input)
-  })
-
-  await x
-}
+// Backend Event Listener
+// Uses the Tauri `listen` function to listen for the Rust event `backend_event`.
+await listen('backend_event', (event) => {
+  console.log("backend event: " + JSON.stringify(event.payload, null, 2))
+})
