@@ -9,12 +9,51 @@ use std::ops::{Deref, DerefMut};
 #[serde(tag = "type")]
 #[ts(export)]
 pub enum FrontendEvent {
+    /// Request to connect to a peer.
+    ConnectRequest(ConnectRequest),
+    /// Request to disconnect from a peer.
+    DisconnectRequest(DisconnectRequest),
+
+    /// Response to a receiving connection request.
+    ConnectionRequestResponse(ConnectionRequestResponse),
+
     /// Transmit a file to the user.
     TransmitFile(TransmitFile),
     /// Accept or reject a file offer.
     FileOfferResponse(FileOfferResponse),
     /// Cancel a file transfer.
     CancelFileTransfer(CancelFileTransfer),
+}
+
+/// Struct representing a connection request.
+#[derive(Debug, Clone, Serialize, Deserialize, TS)]
+#[ts(export)]
+pub struct ConnectRequest {
+    /// The IP address of the peer to connect to.
+    pub ip: String,
+}
+
+/// Struct representing a disconnection request.
+#[derive(Debug, Clone, Serialize, Deserialize, TS)]
+#[ts(export)]
+pub struct DisconnectRequest {
+    /// The IP address of the peer to disconnect from.
+    pub ip: String,
+    /// Optional message to send with the disconnection.
+    pub message: Option<String>,
+}
+
+/// Struct representing a connection request response.
+#[derive(Debug, Clone, Serialize, Deserialize, TS)]
+#[ts(export)]
+pub struct ConnectionRequestResponse {
+    /// The IP address of the peer to connect to.
+    pub ip: String,
+    /// Whether the connection request is accepted.
+    pub accept: bool,
+    /// Optional message to send with the connection request response if rejected.
+    /// Ignored if accept is true.
+    pub message: Option<String>,
 }
 
 /// Struct representing a file transmission request.
