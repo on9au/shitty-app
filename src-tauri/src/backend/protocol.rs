@@ -5,7 +5,7 @@ pub enum Message {
     /// Failed to parse a message, disconnect the peer
     InvalidMessage(String),
     /// Request to connect to the peer
-    ConnectRequest,
+    ConnectRequest(ConnectionInfo),
     /// Response to a connect request
     ConnectResponse {
         success: bool,
@@ -25,6 +25,18 @@ pub enum Message {
     FileChunkAck(FileChunkAck),
     /// Request to send a file done message to the peer
     FileDone(FileDone),
+    /// Response to a file done request
+    FileDoneResult {
+        success: bool,
+        message: Option<String>,
+    },
+}
+
+#[derive(Debug, Serialize, Deserialize)]
+pub struct ConnectionInfo {
+    pub name: String,
+    // Use Cargo.toml to set the version
+    pub backend_version: String,
 }
 
 #[derive(Debug, Serialize, Deserialize)]
