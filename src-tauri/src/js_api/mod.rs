@@ -1,4 +1,4 @@
-//! # Tauri JS API
+//! # Tauri JS and Backend API
 //!
 //! This module contains the Tauri JS API for the application.
 //!
