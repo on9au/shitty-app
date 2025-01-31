@@ -7,7 +7,6 @@ use tracing::debug;
 
 pub mod backend;
 pub mod js_api;
-pub mod js_rs_interop;
 
 // Learn more about Tauri commands at https://tauri.app/develop/calling-rust/
 #[tauri::command]
