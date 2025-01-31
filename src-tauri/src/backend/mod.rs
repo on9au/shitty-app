@@ -1,7 +1,7 @@
 use tokio::sync::mpsc;
 use tracing::info;
 
-use crate::js_api;
+use crate::js_api::{self, backend_event::BackendMessage};
 
 pub mod protocol;
 
@@ -23,7 +23,9 @@ pub async fn init(
     loop {
         backend_event_tx
             .send(js_api::backend_event::BackendEvent::Message(
-                "Test".to_string(),
+                BackendMessage {
+                    message: "Test".to_string(),
+                },
             ))
             .await
             .unwrap();

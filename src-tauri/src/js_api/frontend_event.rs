@@ -1,21 +1,35 @@
 use serde::{Deserialize, Serialize};
 use tracing::debug;
+use ts_rs::TS;
 
 use std::ops::{Deref, DerefMut};
 
 /// Enum of events that occur in the frontend and should be sent to the backend.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, TS)]
+#[serde(tag = "type")]
+#[ts(export)]
 pub enum FrontendEvent {
     /// Transmit a file to the user.
-    TransmitFile(String),
+    TransmitFile(TransmitFile),
     /// Accept or reject a file offer.
     FileOfferResponse(FileOfferResponse),
     /// Cancel a file transfer.
     CancelFileTransfer(CancelFileTransfer),
 }
 
+/// Struct representing a file transmission request.
+#[derive(Debug, Clone, Serialize, Deserialize, TS)]
+#[ts(export)]
+pub struct TransmitFile {
+    /// The absolute path to the file to transmit.
+    pub path: String,
+    /// The filename to transmit.
+    pub filename: String,
+}
+
 /// Struct representing a file offer response.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, TS)]
+#[ts(export)]
 pub struct FileOfferResponse {
     /// The unique identifier of the file being offered.
     pub unique_id: u64,
@@ -24,7 +38,8 @@ pub struct FileOfferResponse {
 }
 
 /// Struct representing a file transfer cancellation.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, TS)]
+#[ts(export)]
 pub struct CancelFileTransfer {
     /// The unique identifier of the file transfer to cancel.
     pub unique_id: u64,
