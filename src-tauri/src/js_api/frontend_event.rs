@@ -1,7 +1,7 @@
 use serde::{Deserialize, Serialize};
 use tracing::debug;
 
-use crate::js_rs_interop::FrontendEventTx;
+use std::ops::{Deref, DerefMut};
 
 /// Enum of events that occur in the frontend and should be sent to the backend.
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -31,6 +31,35 @@ pub struct CancelFileTransfer {
     pub unique_id: u64,
     /// Optional message to send with the cancellation.
     pub message: Option<String>,
+}
+
+/// Async Process Input Transmitter State
+///
+/// Main Thread -> Tokio
+pub struct FrontendEventTx {
+    inner: tokio::sync::Mutex<tokio::sync::mpsc::Sender<FrontendEvent>>,
+}
+
+impl FrontendEventTx {
+    pub fn new(tx: tokio::sync::mpsc::Sender<FrontendEvent>) -> Self {
+        Self {
+            inner: tokio::sync::Mutex::new(tx),
+        }
+    }
+}
+
+impl Deref for FrontendEventTx {
+    type Target = tokio::sync::Mutex<tokio::sync::mpsc::Sender<FrontendEvent>>;
+
+    fn deref(&self) -> &Self::Target {
+        &self.inner
+    }
+}
+
+impl DerefMut for FrontendEventTx {
+    fn deref_mut(&mut self) -> &mut Self::Target {
+        &mut self.inner
+    }
 }
 
 /// Tauri JS API for pushing frontend events to the backend.

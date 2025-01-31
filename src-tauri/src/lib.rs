@@ -1,5 +1,7 @@
-use js_api::{backend_event::BackendEvent, frontend_event::FrontendEvent};
-use js_rs_interop::FrontendEventTx;
+use js_api::{
+    backend_event::BackendEvent,
+    frontend_event::{FrontendEvent, FrontendEventTx},
+};
 use tokio::sync::mpsc;
 use tracing::debug;
 
@@ -68,7 +70,7 @@ pub fn run() {
         .expect("error while running tauri application");
 }
 
-/// Main thread API for pushing backend events to the frontend.
+/// Main thread private API for pushing backend events to the frontend.
 ///
 /// - The event emitted is `backend_event`.
 fn send_backend_event<R: tauri::Runtime>(
