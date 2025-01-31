@@ -5,11 +5,11 @@ use crate::js_api::frontend_event::FrontendEvent;
 /// Async Process Input Transmitter
 ///
 /// Main Thread -> Tokio
-pub struct AsyncProcInputTx {
+pub struct FrontendEventTx {
     inner: tokio::sync::Mutex<tokio::sync::mpsc::Sender<FrontendEvent>>,
 }
 
-impl AsyncProcInputTx {
+impl FrontendEventTx {
     pub fn new(tx: tokio::sync::mpsc::Sender<FrontendEvent>) -> Self {
         Self {
             inner: tokio::sync::Mutex::new(tx),
@@ -17,7 +17,7 @@ impl AsyncProcInputTx {
     }
 }
 
-impl Deref for AsyncProcInputTx {
+impl Deref for FrontendEventTx {
     type Target = tokio::sync::Mutex<tokio::sync::mpsc::Sender<FrontendEvent>>;
 
     fn deref(&self) -> &Self::Target {
@@ -25,7 +25,7 @@ impl Deref for AsyncProcInputTx {
     }
 }
 
-impl DerefMut for AsyncProcInputTx {
+impl DerefMut for FrontendEventTx {
     fn deref_mut(&mut self) -> &mut Self::Target {
         &mut self.inner
     }

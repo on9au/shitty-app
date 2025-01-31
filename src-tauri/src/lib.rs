@@ -1,7 +1,7 @@
 use js_api::{backend_event::BackendEvent, frontend_event::FrontendEvent};
-use js_rs_interop::AsyncProcInputTx;
+use js_rs_interop::FrontendEventTx;
 use tokio::sync::mpsc;
-use tracing::info;
+use tracing::debug;
 
 pub mod backend;
 pub mod js_api;
@@ -40,21 +40,21 @@ pub fn run() {
 
     tauri::Builder::default()
         // Store the async process input transmitter in the Tauri state
-        .manage(AsyncProcInputTx::new(frontend_event_tx))
+        .manage(FrontendEventTx::new(frontend_event_tx))
         // Set up the Tokio runtime
-        .setup(|_app| {
+        .setup(|app| {
             // Run the main async backend process
             tauri::async_runtime::spawn(async move {
                 backend::init(frontend_event_rx, backend_event_tx).await
             });
 
-            // Message passing from Tokio to js
-            // let app_handle = app.handle().clone();
+            // Message passing from Tokio -> main thread to js
+            let app_handle = app.handle().clone();
             tauri::async_runtime::spawn(async move {
                 loop {
                     // Send messages from Tokio to js
-                    if let Some(output) = backend_event_rx.recv().await {
-                        info!(?output, "Sending message to js");
+                    if let Some(event) = backend_event_rx.recv().await {
+                        send_backend_event(&app_handle, event);
                     }
                 }
             });
@@ -68,15 +68,15 @@ pub fn run() {
         .expect("error while running tauri application");
 }
 
-// async fn async_process_model(
-//     mut input_rx: mpsc::Receiver<String>,
-//     output_tx: mpsc::Sender<String>,
-// ) -> Result<(), Box<dyn std::error::Error + Send + Sync>> {
-//     // While there is input from main thread, send back to main thread
-//     while let Some(input) = input_rx.recv().await {
-//         let output = input;
-//         output_tx.send(output).await?;
-//     }
-
-//     Ok(())
-// }
+/// Main thread API for pushing backend events to the frontend.
+///
+/// - The event emitted is `backend_event`.
+fn send_backend_event<R: tauri::Runtime>(
+    app_handle: &(impl tauri::Manager<R> + tauri::Emitter<R>),
+    event: BackendEvent,
+) {
+    debug!(?event, "Backend Event Received");
+    app_handle
+        .emit("backend_event", event)
+        .expect("failed to emit event");
+}
