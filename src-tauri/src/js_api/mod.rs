@@ -27,10 +27,10 @@
 //! ```javascript
 //! // Backend Event Listener
 //! // Uses the Tauri `listen` function to listen for the Rust event `backend_event`.
-//! await listen('backend_event', (event) => { 4
-//!   console.log("js: rs2js: " + event)
+//! await listen('backend_event', (event) => {
+//!   console.log("backend event: " + event)
 //!   let input = event.payload
-//!   inputs.value.push({ timestamp: Date.now(), message: input }) 5
+//!   inputs.value.push({ timestamp: Date.now(), message: input })
 //! })
 //!
 //! // Frontend Event Emitter
