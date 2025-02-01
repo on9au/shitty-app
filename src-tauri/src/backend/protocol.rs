@@ -2,8 +2,8 @@ use serde::{Deserialize, Serialize};
 
 #[derive(Debug, Serialize, Deserialize)]
 pub enum Message {
-    /// Failed to parse a message, disconnect the peer
-    InvalidMessage(InvalidMessage),
+    /// Keep-alive message to prevent TCP connections from timing out
+    KeepAlive,
     /// Request to connect to the peer
     ConnectRequest(ConnectionInfo),
     /// Response to a connect request
@@ -24,11 +24,6 @@ pub enum Message {
     FileDone(FileDone),
     /// Response to a file done request
     FileDoneResult(FileDoneResult),
-}
-
-#[derive(Debug, Serialize, Deserialize)]
-pub struct InvalidMessage {
-    pub message: Option<String>,
 }
 
 #[derive(Debug, Serialize, Deserialize)]

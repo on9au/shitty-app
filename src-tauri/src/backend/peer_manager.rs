@@ -19,9 +19,9 @@ use super::protocol::Message;
 pub struct PeerManager {
     /// List of connected peers
     /// Hashmap of peer's IP/Socket address to their mpsc sender
-    active_peers: Arc<Mutex<HashMap<SocketAddr, Peer>>>,
+    pub(crate) active_peers: Arc<Mutex<HashMap<SocketAddr, Peer>>>,
     /// Reference to the backend event sender
-    backend_event_tx: mpsc::Sender<BackendEvent>,
+    pub(crate) backend_event_tx: mpsc::Sender<BackendEvent>,
 }
 
 /// Peer
@@ -40,7 +40,7 @@ pub struct Peer {
 impl Drop for Peer {
     fn drop(&mut self) {
         match &self.state {
-            PeerState::Connected => {
+            PeerState::Connected { .. } => {
                 info!("Peer improperly disconnected: {:?}", self);
             }
             PeerState::Authenticated { .. } => {
@@ -49,7 +49,8 @@ impl Drop for Peer {
             PeerState::Disconnecting { reason, .. } => {
                 info!(
                     "Peer successfully disconnected: {:?} Reason: {}",
-                    self, reason
+                    self,
+                    reason.clone().unwrap_or("None".to_string())
                 );
             }
         }
@@ -62,7 +63,10 @@ impl Drop for Peer {
 #[derive(Debug)]
 pub enum PeerState {
     /// Connected via TCP, but not yet authenticated
-    Connected,
+    Connected {
+        /// Peer information (if connect request has been received)
+        peer_info: Option<PeerInfo>,
+    },
     /// Authenticated and ready to send/receive messages
     Authenticated {
         /// Peer information
@@ -71,13 +75,13 @@ pub enum PeerState {
     /// Intending to disconnect
     Disconnecting {
         /// The reason for disconnection
-        reason: String,
+        reason: Option<String>,
         /// Peer information
         peer_info: PeerInfo,
     },
 }
 
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 pub struct PeerInfo {
     /// The name of the peer
     name: String,
@@ -128,7 +132,7 @@ impl PeerManager {
                 peer_addr,
                 Peer {
                     addr: peer_addr,
-                    state: PeerState::Connected,
+                    state: PeerState::Connected { peer_info: None },
                     tx,
                 },
             );
@@ -184,9 +188,11 @@ impl PeerManager {
 
         // Read loop
         'recv: loop {
-            match stream.read(&mut *buf).await {
+            match tokio::time::timeout(tokio::time::Duration::from_secs(30), stream.read(&mut *buf))
+                .await
+            {
                 // EOF, connection closed
-                Ok(0) => {
+                Ok(Ok(0)) => {
                     // EOF, connection closed
                     // Check if this was a normal close or a broken pipe
 
@@ -195,7 +201,7 @@ impl PeerManager {
                     break 'recv;
                 }
                 // Deserialize message and handle it
-                Ok(n) => {
+                Ok(Ok(n)) => {
                     let message: Message = match bincode::deserialize(&buf[..n]) {
                         Ok(message) => message,
                         Err(e) => {
@@ -222,7 +228,7 @@ impl PeerManager {
                     self.handle_message(message, peer_addr).await;
                 }
                 // Error reading from stream
-                Err(e) => {
+                Ok(Err(e)) => {
                     warn!(
                         "Failed to read buffer from peer: {}. Closing connection. Err: {}",
                         peer_addr, e
@@ -236,6 +242,18 @@ impl PeerManager {
 
                     break 'recv;
                 }
+                // Timeout reading from stream
+                Err(_) => {
+                    warn!(
+                        "Timeout reading from peer {}. Closing connection.",
+                        peer_addr
+                    );
+
+                    self.drop_peer(peer_addr, "Timeout reading from peer.".to_string().into())
+                        .await;
+
+                    break 'recv;
+                }
             }
         }
     }
@@ -245,11 +263,21 @@ impl PeerManager {
     async fn handle_message(&self, message: Message, peer_addr: SocketAddr) {
         debug!("Received message from peer {}: {:?}", peer_addr, message);
         match message {
-            Message::InvalidMessage(_invalid_message) => todo!(),
-            Message::ConnectRequest(_connection_info) => todo!(),
+            Message::KeepAlive => {
+                self.handle_keep_alive(peer_addr).await;
+            }
+            Message::ConnectRequest(connection_info) => {
+                self.handle_connect_request(connection_info, peer_addr)
+                    .await;
+            }
             Message::ConnectResponse(_connection_response) => todo!(),
-            Message::DisconnectRequest(_disconnect_request) => todo!(),
-            Message::DisconnectAck => todo!(),
+            Message::DisconnectRequest(disconnect_request) => {
+                self.handle_disconnect_request(disconnect_request, peer_addr)
+                    .await;
+            }
+            Message::DisconnectAck => {
+                self.handle_disconnect_ack(peer_addr).await;
+            }
             Message::FileOfferRequest(_file_offer) => todo!(),
             Message::FileOfferResponse(_file_offer_response) => todo!(),
             Message::FileChunk(_file_chunk) => todo!(),
@@ -302,12 +330,18 @@ impl PeerManager {
                                 backend_version: peer_info.backend_version.clone(),
                                 identitiy: BASE64_STANDARD.encode(&peer_info.ecdsa_public_key),
                             },
-                            message: message.unwrap_or(reason.to_string()).into(),
+                            message: {
+                                if let Some(message) = message {
+                                    Some(message)
+                                } else {
+                                    reason.clone()
+                                }
+                            },
                         }))
                         .await
                         .expect("Failed to send ConnectionClose event to the frontend");
                 }
-                PeerState::Connected => {}
+                PeerState::Connected { .. } => {}
             }
         }
     }

@@ -3,6 +3,7 @@ use tracing::{error, info};
 
 use crate::js_api::{self, backend_event::BackendFatal};
 
+pub mod message_handler;
 pub mod peer_manager;
 pub mod protocol;
 
