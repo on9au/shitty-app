@@ -47,6 +47,8 @@ pub enum PeerState {
         name: String,
         /// The ECDSA public key of the peer
         ecdsa_public_key: Vec<u8>,
+        /// The Backend version of the peer
+        backend_version: String,
     },
 }
 
