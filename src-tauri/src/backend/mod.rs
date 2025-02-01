@@ -3,6 +3,7 @@ use tracing::{error, info};
 
 use crate::js_api::{self, backend_event::BackendFatal};
 
+pub mod ecdsa_identity;
 pub mod frontend_handlers;
 pub mod frontend_manager;
 pub mod message_handlers;
@@ -117,8 +118,10 @@ pub async fn init(
     info!("Hello from the backend!");
 
     // Log versions and other important information
-
     log_backend_info!();
+
+    // Setup peer ECDSA Identity
+    ecdsa_identity::setup_ecdsa_identity().await;
 
     // Awaiting confirmation from the frontend that it is ready
     // to receive messages from the backend.
