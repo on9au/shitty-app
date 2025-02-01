@@ -84,11 +84,11 @@ pub enum PeerState {
 #[derive(Debug, Clone)]
 pub struct PeerInfo {
     /// The name of the peer
-    name: String,
+    pub name: String,
     /// The ECDSA public key of the peer
-    ecdsa_public_key: Vec<u8>,
+    pub ecdsa_public_key: Vec<u8>,
     /// The Backend version of the peer
-    backend_version: String,
+    pub backend_version: String,
 }
 
 impl PeerManager {

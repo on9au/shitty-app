@@ -3,8 +3,9 @@ use tracing::{error, info};
 
 use crate::js_api::{self, backend_event::BackendFatal};
 
+pub mod frontend_handlers;
 pub mod frontend_manager;
-pub mod message_handler;
+pub mod message_handlers;
 pub mod peer_manager;
 pub mod protocol;
 
