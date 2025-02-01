@@ -42,6 +42,17 @@ window.addEventListener("DOMContentLoaded", () => {
     funky();
   });
 });
+
+// Communicate to backend that the frontend is ready
+// after DOMContentLoaded
+window.addEventListener("DOMContentLoaded", async () => {
+  await invoke("push_frontend_event", {
+    event: {
+      "type": "FrontendReady"
+    }
+  });
+});
+
 // Backend Event Listener
 // Uses the Tauri `listen` function to listen for the Rust event `backend_event`.
 await listen('backend_event', (event) => {

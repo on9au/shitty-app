@@ -24,6 +24,8 @@ pub enum FrontendEvent {
     /// New request: Cancel a file transfer.
     CancelFileTransfer(CancelFileTransfer),
 
+    /// Startup: Frontend is ready to receive messages from the backend.
+    FrontendReady,
     /// Shutdown: Shutdown the backend gracefully.
     Shutdown,
 }
