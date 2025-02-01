@@ -41,10 +41,10 @@ impl Drop for Peer {
     fn drop(&mut self) {
         match &self.state {
             PeerState::Connected => {
-                warn!("Peer improperly disconnected: {:?}", self);
+                info!("Peer improperly disconnected: {:?}", self);
             }
             PeerState::Authenticated { .. } => {
-                warn!("Peer improperly disconnected: {:?}", self);
+                info!("Peer improperly disconnected: {:?}", self);
             }
             PeerState::Disconnecting { reason, .. } => {
                 info!(
