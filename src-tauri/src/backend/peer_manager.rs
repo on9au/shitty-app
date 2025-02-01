@@ -195,20 +195,17 @@ impl PeerManager {
     async fn handle_message(&self, message: Message, peer_addr: SocketAddr) {
         debug!("Received message from peer {}: {:?}", peer_addr, message);
         match message {
-            Message::InvalidMessage(_) => todo!(),
+            Message::InvalidMessage(_invalid_message) => todo!(),
             Message::ConnectRequest(_connection_info) => todo!(),
-            Message::ConnectResponse(_) => todo!(),
-            Message::DisconnectRequest(_) => todo!(),
+            Message::ConnectResponse(_connection_response) => todo!(),
+            Message::DisconnectRequest(_disconnect_request) => todo!(),
             Message::DisconnectAck => todo!(),
             Message::FileOfferRequest(_file_offer) => todo!(),
-            Message::FileOfferResponse { accept: _ } => todo!(),
+            Message::FileOfferResponse(_file_offer_response) => todo!(),
             Message::FileChunk(_file_chunk) => todo!(),
             Message::FileChunkAck(_file_chunk_ack) => todo!(),
             Message::FileDone(_file_done) => todo!(),
-            Message::FileDoneResult {
-                success: _,
-                message: _,
-            } => todo!(),
+            Message::FileDoneResult(_file_done_result) => todo!(),
         }
     }
 }

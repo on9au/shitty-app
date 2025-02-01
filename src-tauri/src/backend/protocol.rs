@@ -3,19 +3,19 @@ use serde::{Deserialize, Serialize};
 #[derive(Debug, Serialize, Deserialize)]
 pub enum Message {
     /// Failed to parse a message, disconnect the peer
-    InvalidMessage(String),
+    InvalidMessage(InvalidMessage),
     /// Request to connect to the peer
     ConnectRequest(ConnectionInfo),
     /// Response to a connect request
     ConnectResponse(ConnectionResponse),
     /// Request to disconnect from the peer
-    DisconnectRequest(String),
+    DisconnectRequest(DisconnectRequest),
     /// Response to a disconnect request
     DisconnectAck,
     /// Request to send a message to the peer
     FileOfferRequest(FileOffer),
     /// Response to a file offer request
-    FileOfferResponse { accept: bool },
+    FileOfferResponse(FileOfferResponse),
     /// Request to send a chunk of a file to the peer
     FileChunk(FileChunk),
     /// Response to a file chunk request
@@ -23,10 +23,12 @@ pub enum Message {
     /// Request to send a file done message to the peer
     FileDone(FileDone),
     /// Response to a file done request
-    FileDoneResult {
-        success: bool,
-        message: Option<String>,
-    },
+    FileDoneResult(FileDoneResult),
+}
+
+#[derive(Debug, Serialize, Deserialize)]
+pub struct InvalidMessage {
+    pub message: Option<String>,
 }
 
 #[derive(Debug, Serialize, Deserialize)]
@@ -52,6 +54,11 @@ pub struct ConnectionResponse {
 }
 
 #[derive(Debug, Serialize, Deserialize)]
+pub struct DisconnectRequest {
+    pub message: Option<String>,
+}
+
+#[derive(Debug, Serialize, Deserialize)]
 pub enum ConnectionPermit {
     Permit {
         /// The ECDSA public key of the peer
@@ -66,6 +73,12 @@ pub struct FileOffer {
     pub unique_id: u64,
     pub size: u64,
     pub chunk_len: u64,
+}
+
+#[derive(Debug, Serialize, Deserialize)]
+pub struct FileOfferResponse {
+    pub unique_id: u64,
+    pub accept: bool,
 }
 
 #[derive(Debug, Serialize, Deserialize)]
@@ -86,4 +99,11 @@ pub struct FileChunkAck {
 pub struct FileDone {
     pub unique_id: u64,
     pub checksum: Vec<u8>,
+}
+
+#[derive(Debug, Serialize, Deserialize)]
+pub struct FileDoneResult {
+    pub unique_id: u64,
+    pub success: bool,
+    pub message: Option<String>,
 }
