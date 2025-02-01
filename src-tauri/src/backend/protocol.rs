@@ -7,10 +7,7 @@ pub enum Message {
     /// Request to connect to the peer
     ConnectRequest(ConnectionInfo),
     /// Response to a connect request
-    ConnectResponse {
-        success: bool,
-        message: Option<String>,
-    },
+    ConnectResponse(ConnectionResponse),
     /// Request to disconnect from the peer
     DisconnectRequest(String),
     /// Response to a disconnect request
@@ -33,10 +30,34 @@ pub enum Message {
 }
 
 #[derive(Debug, Serialize, Deserialize)]
+pub struct EcdsaConnectionInfo {
+    pub public_key: Vec<u8>,
+    pub signature: Vec<u8>,
+    pub nonce: Vec<u8>,
+}
+
+#[derive(Debug, Serialize, Deserialize)]
 pub struct ConnectionInfo {
     pub name: String,
     // Use Cargo.toml to set the version
     pub backend_version: String,
+    /// The ECDSA public key of the peer
+    pub identitiy: EcdsaConnectionInfo,
+}
+
+#[derive(Debug, Serialize, Deserialize)]
+pub struct ConnectionResponse {
+    pub permit: ConnectionPermit,
+    pub message: Option<String>,
+}
+
+#[derive(Debug, Serialize, Deserialize)]
+pub enum ConnectionPermit {
+    Permit {
+        /// The ECDSA public key of the peer
+        identitiy: EcdsaConnectionInfo,
+    },
+    Deny,
 }
 
 #[derive(Debug, Serialize, Deserialize)]

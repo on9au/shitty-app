@@ -75,6 +75,9 @@ pub struct ConnectionInfo {
     pub ip: String,
     /// The version of the backend.
     pub backend_version: String,
+    /// The ECDSA public key of the connection.
+    /// As a string encoded in base64.
+    pub identitiy: String,
 }
 
 /// Struct representing an unexpected connection closure.
@@ -91,6 +94,8 @@ pub struct ConnectionCloseOrBroken {
 #[derive(Debug, Clone, Serialize, Deserialize, TS)]
 #[ts(export)]
 pub struct FileOffer {
+    /// The peer that is offering the file.
+    pub peer: ConnectionInfo,
     /// The filename of the file being offered.
     pub filename: String,
     /// A unique identifier for the file.

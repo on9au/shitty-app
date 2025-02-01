@@ -15,4 +15,9 @@ ip: string,
 /**
  * The version of the backend.
  */
-backend_version: string, };
+backend_version: string, 
+/**
+ * The ECDSA public key of the connection.
+ * As a string encoded in base64.
+ */
+identitiy: string, };
