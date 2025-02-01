@@ -18,24 +18,33 @@ pub async fn init(
     // Log versions and other important information
 
     // Backend Version
-    info!("Backend Version:        {}", env!("CARGO_PKG_VERSION"));
+    info!("Backend Version:         {}", env!("CARGO_PKG_VERSION"));
+
+    // Certificate Information
+    info!("Certificate Information: {}", "TBC");
 
     // Build Information via vergen
     info!("Build Information:");
-    info!(" Rustc Version:         {}", env!("VERGEN_RUSTC_SEMVER"));
-    info!(" Rustc Channel:         {}", env!("VERGEN_RUSTC_CHANNEL"));
-    info!(" Build Timestamp:       {}", env!("VERGEN_BUILD_TIMESTAMP"));
+    info!(" Rustc Version:          {}", env!("VERGEN_RUSTC_SEMVER"));
+    info!(" Rustc Channel:          {}", env!("VERGEN_RUSTC_CHANNEL"));
     info!(
-        " Target Triple:         {}",
+        " Build Timestamp:        {}",
+        env!("VERGEN_BUILD_TIMESTAMP")
+    );
+    info!(
+        " Target Triple:          {}",
         env!("VERGEN_CARGO_TARGET_TRIPLE")
     );
     info!(
-        " Build Target:          {}",
+        " Build Target:           {}",
         env!("VERGEN_RUSTC_HOST_TRIPLE")
     );
-    info!(" Opt Level:             {}", env!("VERGEN_CARGO_OPT_LEVEL"));
-    info!(" Debug:                 {}", env!("VERGEN_CARGO_DEBUG"));
-    info!(" Compile-time Features: {}", env!("VERGEN_CARGO_FEATURES"));
+    info!(
+        " Opt Level:              {}",
+        env!("VERGEN_CARGO_OPT_LEVEL")
+    );
+    info!(" Debug:                  {}", env!("VERGEN_CARGO_DEBUG"));
+    info!(" Compile-time Features:  {}", env!("VERGEN_CARGO_FEATURES"));
 
     // Awaiting confirmation from the frontend that it is ready
     // to receive messages from the backend.
