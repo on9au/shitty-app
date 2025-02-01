@@ -3561,6 +3561,7 @@ dependencies = [
 name = "shitty-app"
 version = "0.1.0"
 dependencies = [
+ "base64 0.22.1",
  "bincode",
  "serde",
  "serde_json",
