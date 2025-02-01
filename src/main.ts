@@ -1,5 +1,6 @@
 import { invoke } from "@tauri-apps/api/core";
 import { listen } from "@tauri-apps/api/event";
+import { FrontendEvent } from "./bindings/FrontendEvent";
 
 let greetInputEl: HTMLInputElement | null;
 let greetMsgEl: HTMLElement | null;
@@ -49,7 +50,7 @@ window.addEventListener("DOMContentLoaded", async () => {
   await invoke("push_frontend_event", {
     event: {
       "type": "FrontendReady"
-    }
+    } as FrontendEvent
   });
 });
 

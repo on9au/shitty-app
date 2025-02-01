@@ -65,7 +65,7 @@ pub async fn init(
         None => {
             let error_msg = "Frontend event receiver closed unexpectedly.";
 
-            error!(error_msg);
+            error!("{}", error_msg);
 
             backend_event_tx
                 .send(js_api::backend_event::BackendEvent::BackendFatal(
