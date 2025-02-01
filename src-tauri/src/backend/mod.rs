@@ -77,15 +77,6 @@ pub async fn init(
 
             error!("{}", error_msg);
 
-            backend_event_tx
-                .send(js_api::backend_event::BackendEvent::BackendFatal(
-                    BackendFatal {
-                        message: error_msg.to_string(),
-                    },
-                ))
-                .await
-                .expect("Failed to send BackendFatal event to the frontend");
-
             error!("Terminating backend...");
             return;
         }
