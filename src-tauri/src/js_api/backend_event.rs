@@ -13,7 +13,7 @@ pub enum BackendEvent {
     /// Info:  Backend is ready to receive messages.
     ///         If this is not sent, the frontend should assume the backend is not ready,
     ///         or should assume the backend or mpsc channel is failing after a given time.
-    BackendReady,
+    BackendReady(BackendInfo),
     /// Info:  Backend is shutting down gracefully.
     BackendShutdown,
     /// Warn:  Backend warning.
@@ -55,6 +55,14 @@ pub struct BackendError {
 pub struct BackendFatal {
     /// The error message.
     pub message: String,
+}
+
+/// Struct representing backend information.
+#[derive(Debug, Clone, Serialize, Deserialize, TS)]
+#[ts(export)]
+pub struct BackendInfo {
+    /// The version of the backend.
+    pub version: String,
 }
 
 /// Struct representing a backend warning.

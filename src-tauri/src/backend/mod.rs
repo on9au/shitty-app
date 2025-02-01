@@ -85,7 +85,11 @@ pub async fn init(
     // by sending a BackendReady event to the frontend.
     // If this fails, we should error and terminate the backend.
     backend_event_tx
-        .send(js_api::backend_event::BackendEvent::BackendReady)
+        .send(js_api::backend_event::BackendEvent::BackendReady(
+            js_api::backend_event::BackendInfo {
+                version: env!("CARGO_PKG_VERSION").to_string(),
+            },
+        ))
         .await
         .map_err(|e| {
             error!(?e, "Failed to send BackendReady event to the frontend");
