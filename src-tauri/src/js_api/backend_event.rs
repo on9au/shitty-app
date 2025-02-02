@@ -1,7 +1,7 @@
 use serde::{Deserialize, Serialize};
 use ts_rs::TS;
 
-use super::frontend_event::{self, FrontendEvent};
+use super::frontend_event::FrontendEvent;
 
 /// Enum of events that occur in the backend and should be sent to the frontend.
 #[derive(Debug, Clone, Serialize, Deserialize, TS)]
