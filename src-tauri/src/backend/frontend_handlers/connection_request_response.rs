@@ -6,7 +6,10 @@ use crate::{
         peer_manager::PeerState,
         protocol::{ConnectionPermit, ConnectionResponse, EcdsaConnectionInfo, Message},
     },
-    js_api::frontend_event::ConnectionRequestResponse,
+    js_api::{
+        backend_event::{BackendEvent, BadFrontendEvent},
+        frontend_event::{ConnectionRequestResponse, FrontendEvent},
+    },
 };
 
 impl FrontendManager {
@@ -18,7 +21,23 @@ impl FrontendManager {
         // If accepted, change state to `Authenticated` and send a `ConnectResponse` with `Permit` message
         // If rejected, send a `ConnectResponse` with `Deny` message
 
-        let peer_addr: SocketAddr = connection_request_response.ip.parse().unwrap();
+        let peer_addr: SocketAddr = match connection_request_response.ip.parse() {
+            Ok(peer_addr) => peer_addr,
+            Err(_) => {
+                // Invalid IP address
+                self.peer_manager
+                    .backend_event_tx
+                    .send(BackendEvent::BadFrontendEvent(BadFrontendEvent {
+                        event: FrontendEvent::ConnectionRequestResponse(
+                            connection_request_response,
+                        ),
+                        error: "Invalid IP address".to_string(),
+                    }))
+                    .await
+                    .expect("Failed to send BadFrontendEvent event to the backend");
+                return;
+            }
+        };
 
         let mut peers = self.peer_manager.active_peers.lock().await;
 

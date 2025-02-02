@@ -1,6 +1,8 @@
 use serde::{Deserialize, Serialize};
 use ts_rs::TS;
 
+use super::frontend_event::FrontendEvent;
+
 /// Enum of events that occur in the backend and should be sent to the frontend.
 #[derive(Debug, Clone, Serialize, Deserialize, TS)]
 #[serde(tag = "type")]
@@ -18,6 +20,9 @@ pub enum BackendEvent {
     BackendShutdown,
     /// Warn:  Backend warning.
     BackendWarning(BackendWarning),
+
+    /// Bad Frontend Event: An unexpected event received from the frontend.
+    BadFrontendEvent(BadFrontendEvent),
 
     /// Response Required: A connection request received from a peer.
     ConnectRequest(ConnectionInfo),
@@ -71,6 +76,16 @@ pub struct BackendInfo {
 pub struct BackendWarning {
     /// The warning message.
     pub message: String,
+}
+
+/// Struct representing a bad frontend event.
+#[derive(Debug, Clone, Serialize, Deserialize, TS)]
+#[ts(export)]
+pub struct BadFrontendEvent {
+    /// Frontend event that was received.
+    pub event: FrontendEvent,
+    /// The error message.
+    pub error: String,
 }
 
 /// Struct representing a connection info.
