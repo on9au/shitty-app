@@ -184,11 +184,11 @@ impl PeerManager {
 
     /// Read messages from a peer
     async fn read_messages(&self, mut stream: OwnedReadHalf, peer_addr: SocketAddr) {
-        let mut buf: Box<[u8; 1024 * 1024 * 4]> = Box::new([0; 1024 * 1024 * 4]); // 4MB buffer
+        let mut buf: [u8; 4096] = [0; 4096]; // 4KB buffer
 
         // Read loop
         'recv: loop {
-            match tokio::time::timeout(tokio::time::Duration::from_secs(30), stream.read(&mut *buf))
+            match tokio::time::timeout(tokio::time::Duration::from_secs(30), stream.read(&mut buf))
                 .await
             {
                 // EOF, connection closed
