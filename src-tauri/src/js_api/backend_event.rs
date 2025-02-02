@@ -22,7 +22,7 @@ pub enum BackendEvent {
     ///         However if it happens, the entire program must be restarted to restore functionality.
     FatalLostComms(BackendFatal),
 
-    /// Info:  Backend is shutting down gracefully.
+    /// Info:  Backend has shutdown gracefully.
     BackendShutdown,
     /// Warn:  Backend warning.
     BackendWarning(BackendWarning),
