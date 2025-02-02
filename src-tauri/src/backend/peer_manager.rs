@@ -4,13 +4,13 @@ use base64::{prelude::BASE64_STANDARD, Engine};
 use tokio::{
     io::{AsyncReadExt, AsyncWriteExt},
     net::{tcp::OwnedReadHalf, TcpListener, TcpStream},
-    sync::{mpsc, Mutex},
+    sync::{mpsc, oneshot, Mutex},
 };
-use tracing::{debug, info, trace, warn};
+use tracing::{debug, error, info, trace, warn};
 
 use crate::js_api::backend_event::{BackendEvent, ConnectionCloseOrBroken, ConnectionInfo};
 
-use super::protocol::Message;
+use super::protocol::{DisconnectRequest, Message};
 
 /// Peer Manager
 ///
@@ -22,6 +22,8 @@ pub struct PeerManager {
     pub(crate) active_peers: Arc<Mutex<HashMap<SocketAddr, Peer>>>,
     /// Reference to the backend event sender
     pub(crate) backend_event_tx: mpsc::Sender<BackendEvent>,
+    /// Shutdown one-shot sender
+    shutdown_tx: Arc<Mutex<Option<oneshot::Sender<()>>>>,
 }
 
 /// Peer
@@ -97,26 +99,75 @@ impl PeerManager {
         Self {
             active_peers: Arc::new(Mutex::new(HashMap::new())),
             backend_event_tx,
+            shutdown_tx: Arc::new(Mutex::new(None)),
         }
+    }
+
+    /// Gracefully shutdown the PeerManager
+    ///
+    /// Should not be called before `start` has been called, else it returns immediately.
+    pub async fn shutdown(&self) {
+        info!("Shutting down PeerManager");
+
+        // Send a shutdown signal to the PeerManager
+        if let Some(shutdown_tx) = self.shutdown_tx.lock().await.take() {
+            shutdown_tx.send(()).ok();
+        } else {
+            warn!("PeerManager has already been shutdown, or never started. Aborting shutdown.");
+            return;
+        }
+
+        let mut active_peers = self.active_peers.lock().await;
+        for (peer_addr, peer) in active_peers.drain() {
+            // Send an ImmediateConnectionClose message to the peer
+            peer.tx
+                .send(Message::ImmediateConnectionClose(DisconnectRequest {
+                    message: "Peer is shutting down".to_string().into(),
+                }))
+                .await
+                .ok();
+
+            // Drop the peer
+            self.drop_peer(peer_addr, None).await;
+        }
+
+        info!("PeerManager has been shutdown");
     }
 
     /// Begin listening for incoming connections from new peers
     pub async fn start(&self, listen_addr: &str) -> Result<(), Box<dyn std::error::Error>> {
         let listener = TcpListener::bind(listen_addr).await?;
+        let (shutdown_tx, mut shutdown_rx) = oneshot::channel(); // Create a shutdown signal
+
+        // Set the shutdown signal
+        *self.shutdown_tx.lock().await = Some(shutdown_tx);
 
         info!("Listening for incoming connections on {}", listen_addr);
 
         // Accept incoming connections
         // Once accepted, spawn a new task to handle the connection
         loop {
-            let (stream, peer_addr) = listener.accept().await?;
-            let manager = self.clone();
+            tokio::select! {
+                result = listener.accept() => {
+                    match result {
+                        Ok((stream, peer_addr)) => {
+                            info!("Accepted connection from {}", peer_addr);
+                            let manager = self.clone();
+                            tokio::spawn(async move {
+                                manager.handle_connection(stream, peer_addr).await;
+                            });
+                        }
+                        Err(e) => {
+                            error!("Failed to accept connection: {}", e);
+                        }
+                    }
+                }
 
-            info!("Accepted connection from peer {}", peer_addr);
-
-            tokio::spawn(async move {
-                manager.handle_connection(stream, peer_addr).await;
-            });
+                _ = &mut shutdown_rx => {
+                    info!("Shutting down PeerManager...");
+                    break Ok(());
+                }
+            }
         }
     }
 
@@ -281,6 +332,7 @@ impl PeerManager {
             Message::DisconnectAck => {
                 self.handle_disconnect_ack(peer_addr).await;
             }
+            Message::ImmediateConnectionClose(_disconnect_request) => todo!(),
             Message::FileOfferRequest(_file_offer) => todo!(),
             Message::FileOfferResponse(_file_offer_response) => todo!(),
             Message::FileChunk(_file_chunk) => todo!(),

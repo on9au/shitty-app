@@ -12,6 +12,8 @@ pub enum Message {
     DisconnectRequest(DisconnectRequest),
     /// Response to a disconnect request
     DisconnectAck,
+    /// Immediate connection close message to the peer. Not to be ACKed. Usually sent when peer is shutting down.
+    ImmediateConnectionClose(DisconnectRequest),
     /// Request to send a message to the peer
     FileOfferRequest(FileOffer),
     /// Response to a file offer request

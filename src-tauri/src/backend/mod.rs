@@ -175,21 +175,43 @@ pub async fn init(
 
     // If any of the threads panic or return an error, we should terminate the backend.
     tokio::select! {
-        _ = peer_manager_thread => {
-            error!("PeerManager thread terminated unexpectedly, terminating backend...");
-            backend_event_tx.send(
-                BackendEvent::BackendFatal(BackendFatal {
-                    message: "PeerManager thread terminated unexpectedly. Terminating backend. Please check logs for more information.".to_string()
-                })
-            ).await.expect("Failed to send BackendFatal event to the frontend");
+        result = peer_manager_thread => {
+            match result {
+                Ok(_) => {
+                    error!("PeerManager thread terminated unexpectedly, terminating backend...");
+                    backend_event_tx.send(
+                        BackendEvent::BackendFatal(BackendFatal {
+                            message: "PeerManager thread terminated unexpectedly. Terminating backend. Please check logs for more information.".to_string()
+                        })
+                    ).await.expect("Failed to send BackendFatal event to the frontend");
+                }
+                Err(e) => {
+                    error!(?e, "PeerManager thread returned an error, terminating backend...");
+                    backend_event_tx.send(
+                        BackendEvent::BackendFatal(BackendFatal {
+                            message: "PeerManager thread returned an error. Terminating backend. Please check logs for more information.".to_string()
+                        })
+                    ).await.expect("Failed to send BackendFatal event to the frontend");
+                }
+            }
         }
-        _ = frontend_manager_thread => {
-            error!("FrontendManager thread terminated unexpectedly, terminating backend...");
-            backend_event_tx.send(
-                BackendEvent::BackendFatal(BackendFatal {
-                    message: "FrontendManager thread terminated unexpectedly. Terminating backend. Please check logs for more information.".to_string()
-                })
-            ).await.expect("Failed to send BackendFatal event to the frontend");
+        result = frontend_manager_thread => {
+            match result {
+                Ok(_) => {
+                    info!("Frontend-initiated shutdown, terminating backend...");
+                    backend_event_tx.send(
+                        BackendEvent::BackendShutdown
+                    ).await.expect("Failed to send BackendFatal event to the frontend");
+                }
+                Err(e) => {
+                    error!(?e, "FrontendManager thread returned an error, terminating backend...");
+                    backend_event_tx.send(
+                        BackendEvent::BackendFatal(BackendFatal {
+                            message: "FrontendManager thread returned an error. Terminating backend. Please check logs for more information.".to_string()
+                        })
+                    ).await.expect("Failed to send BackendFatal event to the frontend");
+                }
+            }
         }
     }
 }

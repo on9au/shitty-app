@@ -25,10 +25,21 @@ impl FrontendManager {
         }
     }
 
+    pub async fn shutdown(&mut self) {
+        // Shutdown the peer manager gracefully
+        self.peer_manager.shutdown().await;
+
+        // Notify the frontend that the backend has shutdown
+        self.peer_manager
+            .backend_event_tx
+            .send(crate::js_api::backend_event::BackendEvent::BackendShutdown)
+            .await
+            .expect("Failed to send BackendShutdown event to the frontend");
+    }
+
     pub async fn start(&mut self) -> Result<(), Box<dyn std::error::Error>> {
         loop {
-            // Receive the next frontend event
-            if let Some(event) = self.frontend_event_rx.recv().await {
+            while let Some(event) = self.frontend_event_rx.recv().await {
                 // Handle the event
                 self.handle_frontend_event(event).await;
             }
@@ -49,7 +60,10 @@ impl FrontendManager {
             FrontendEvent::FrontendReady(backend_startup_config) => {
                 self.handle_frontend_ready(backend_startup_config).await;
             }
-            FrontendEvent::Shutdown => todo!(),
+            FrontendEvent::Shutdown => {
+                // Shutdown the backend gracefully
+                self.shutdown().await;
+            }
         }
     }
 }
