@@ -28,6 +28,10 @@ pub enum FrontendEvent {
     FrontendReady(BackendStartupConfig),
     /// Shutdown: Shutdown the backend gracefully.
     Shutdown,
+    /// Start: Start the backend.
+    Start(BackendStartupConfig),
+    /// Restart: Restart the backend. (Exact same as Shutdown -> Start)
+    Restart(BackendStartupConfig),
 }
 
 /// Struct representing a connection request.

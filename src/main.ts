@@ -86,6 +86,7 @@ window.addEventListener("DOMContentLoaded", () => {
         });
         errorMessageEl.textContent = ""; // Clear error message on success
       } catch (error) {
+        console.error(error);
         errorMessageEl.textContent = "Invalid JSON input: " + error;
       }
     }

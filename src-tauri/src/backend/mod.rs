@@ -149,65 +149,31 @@ pub async fn init(
     let mut frontend_manager =
         frontend_manager::FrontendManager::new(frontend_event_rx, peer_manager.clone());
 
-    // Start the PeerManager
-    let peer_manager_thread = tokio::spawn(async move {
-        peer_manager
-            .start(socket_addr.as_str())
-            .await
-            .map_err(|e| {
-                error!(?e, "PeerManager returned an error, terminating backend");
-                e
-            })
-            .unwrap();
-    });
+    // Start the FrontendManager and PeerManager
+    let frontend_manager_thread =
+        tokio::spawn(async move { frontend_manager.start(socket_addr).await });
 
-    // Start the FrontendManager
-    let frontend_manager_thread = tokio::spawn(async move {
-        frontend_manager
-            .start()
-            .await
-            .map_err(|e| {
-                error!(?e, "FrontendManager returned an error, terminating backend");
-                e
-            })
-            .unwrap();
-    });
-
-    // If any of the threads panic or return an error, we should terminate the backend.
+    // We really do not want frontend_manager_thread to return.
+    // If it does, it means the frontend has lost communication with the backend.
+    // Therefore, we cannot continue running the entire program, and we must terminate.
     tokio::select! {
-        result = peer_manager_thread => {
-            match result {
-                Ok(_) => {
-                    error!("PeerManager thread terminated unexpectedly, terminating backend...");
-                    backend_event_tx.send(
-                        BackendEvent::BackendFatal(BackendFatal {
-                            message: "PeerManager thread terminated unexpectedly. Terminating backend. Please check logs for more information.".to_string()
-                        })
-                    ).await.expect("Failed to send BackendFatal event to the frontend");
-                }
-                Err(e) => {
-                    error!(?e, "PeerManager thread returned an error, terminating backend...");
-                    backend_event_tx.send(
-                        BackendEvent::BackendFatal(BackendFatal {
-                            message: "PeerManager thread returned an error. Terminating backend. Please check logs for more information.".to_string()
-                        })
-                    ).await.expect("Failed to send BackendFatal event to the frontend");
-                }
-            }
-        }
         result = frontend_manager_thread => {
             match result {
                 Ok(_) => {
-                    info!("Frontend-initiated shutdown, terminating backend...");
+                    error!("FrontendManager thread returned unexpectedly. This should not happen. Terminating backend...");
+                    error!("Entire program MUST be restarted to recover from this error.");
                     backend_event_tx.send(
-                        BackendEvent::BackendShutdown
+                        BackendEvent::FatalLostComms(BackendFatal {
+                            message: "FrontendManager thread returned unexpectedly. Program must be restarted. Please check logs for more information.".to_string()
+                        })
                     ).await.expect("Failed to send BackendFatal event to the frontend");
                 }
                 Err(e) => {
                     error!(?e, "FrontendManager thread returned an error, terminating backend...");
+                    error!("Entire program MUST be restarted to recover from this error.");
                     backend_event_tx.send(
-                        BackendEvent::BackendFatal(BackendFatal {
-                            message: "FrontendManager thread returned an error. Terminating backend. Please check logs for more information.".to_string()
+                        BackendEvent::FatalLostComms(BackendFatal {
+                            message: "FrontendManager thread returned an error. Program must be restarted. Please check logs for more information.".to_string()
                         })
                     ).await.expect("Failed to send BackendFatal event to the frontend");
                 }

@@ -11,11 +11,17 @@ pub enum BackendEvent {
     /// Error: Backend error.
     BackendError(BackendError),
     /// Error: Backend fatal/panic error. The backend will shut down after sending this.
+    ///         Frontend may attempt to restart the backend (not entire program) after receiving this.
     BackendFatal(BackendFatal),
     /// Info:  Backend is ready to receive messages.
     ///         If this is not sent, the frontend should assume the backend is not ready,
     ///         or should assume the backend or mpsc channel is failing after a given time.
     BackendReady(BackendInfo),
+    /// Error: Frontend Handler quit unexpectedly. We just lost our comms. This is extremely bad.
+    ///         Due to the nature of the frontend handler, ideally this should never happen.
+    ///         However if it happens, the entire program must be restarted to restore functionality.
+    FatalLostComms(BackendFatal),
+
     /// Info:  Backend is shutting down gracefully.
     BackendShutdown,
     /// Warn:  Backend warning.

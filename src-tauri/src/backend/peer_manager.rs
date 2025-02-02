@@ -22,8 +22,8 @@ pub struct PeerManager {
     pub(crate) active_peers: Arc<Mutex<HashMap<SocketAddr, Peer>>>,
     /// Reference to the backend event sender
     pub(crate) backend_event_tx: mpsc::Sender<BackendEvent>,
-    /// Shutdown one-shot sender
-    shutdown_tx: Arc<Mutex<Option<oneshot::Sender<()>>>>,
+    /// Shutdown one-shot sender. If None, the PeerManager has been shutdown.
+    pub(crate) shutdown_tx: Arc<Mutex<Option<oneshot::Sender<()>>>>,
 }
 
 /// Peer
@@ -112,6 +112,7 @@ impl PeerManager {
         // Send a shutdown signal to the PeerManager
         if let Some(shutdown_tx) = self.shutdown_tx.lock().await.take() {
             shutdown_tx.send(()).ok();
+            // self.shutdown_tx is now = None
         } else {
             warn!("PeerManager has already been shutdown, or never started. Aborting shutdown.");
             return;
@@ -132,6 +133,11 @@ impl PeerManager {
         }
 
         info!("PeerManager has been shutdown");
+    }
+
+    /// Is the PeerManager running?
+    pub async fn is_running(&self) -> bool {
+        self.shutdown_tx.lock().await.is_some()
     }
 
     /// Begin listening for incoming connections from new peers
@@ -164,8 +170,8 @@ impl PeerManager {
                 }
 
                 _ = &mut shutdown_rx => {
-                    info!("Shutting down PeerManager...");
-                    break Ok(());
+                        info!("PeerManager will not accept new connections. Goodbye!");
+                        break Ok(());
                 }
             }
         }
