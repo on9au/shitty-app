@@ -120,6 +120,16 @@ impl FrontendManager {
                     }
                 }
             }
+        } else {
+            // Peer that frontend is trying to respond to does not exist
+            self.peer_manager
+                .backend_event_tx
+                .send(BackendEvent::BadFrontendEvent(BadFrontendEvent {
+                    event: FrontendEvent::ConnectionRequestResponse(connection_request_response),
+                    error: "Peer does not exist".to_string(),
+                }))
+                .await
+                .expect("Failed to send BadFrontendEvent event to the backend");
         }
     }
 }

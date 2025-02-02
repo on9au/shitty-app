@@ -1,5 +1,4 @@
 use tokio::sync::mpsc;
-use tracing::warn;
 
 use crate::js_api::frontend_event::FrontendEvent;
 
@@ -47,8 +46,8 @@ impl FrontendManager {
             FrontendEvent::TransmitFile(_transmit_file) => todo!(),
             FrontendEvent::FileOfferResponse(_file_offer_response) => todo!(),
             FrontendEvent::CancelFileTransfer(_cancel_file_transfer) => todo!(),
-            FrontendEvent::FrontendReady(_) => {
-                warn!("FrontendReady event received, but not in a valid state to handle it. Is frontend errornous?");
+            FrontendEvent::FrontendReady(backend_startup_config) => {
+                self.handle_frontend_ready(backend_startup_config).await;
             }
             FrontendEvent::Shutdown => todo!(),
         }
