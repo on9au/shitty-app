@@ -4,8 +4,10 @@ import type { BackendFatal } from "./BackendFatal";
 import type { BackendInfo } from "./BackendInfo";
 import type { BackendMessage } from "./BackendMessage";
 import type { BackendWarning } from "./BackendWarning";
+import type { BadFrontendEvent } from "./BadFrontendEvent";
 import type { ConnectionCloseOrBroken } from "./ConnectionCloseOrBroken";
 import type { ConnectionInfo } from "./ConnectionInfo";
+import type { ConnectionRequestResponse } from "./ConnectionRequestResponse";
 import type { FileOffer } from "./FileOffer";
 import type { FileTransferComplete } from "./FileTransferComplete";
 import type { FileTransferError } from "./FileTransferError";
@@ -14,4 +16,4 @@ import type { FileTransferProgress } from "./FileTransferProgress";
 /**
  * Enum of events that occur in the backend and should be sent to the frontend.
  */
-export type BackendEvent = { "type": "BackendError" } & BackendError | { "type": "BackendFatal" } & BackendFatal | { "type": "BackendReady" } & BackendInfo | { "type": "BackendShutdown" } | { "type": "BackendWarning" } & BackendWarning | { "type": "ConnectRequest" } & ConnectionInfo | { "type": "AutoConnectionClose" } & ConnectionInfo | { "type": "ConnectionClose" } & ConnectionCloseOrBroken | { "type": "ConnectionBroken" } & ConnectionCloseOrBroken | { "type": "FileOffer" } & FileOffer | { "type": "FileTransferComplete" } & FileTransferComplete | { "type": "FileTransferError" } & FileTransferError | { "type": "FileTransferProgress" } & FileTransferProgress | { "type": "Message" } & BackendMessage;
+export type BackendEvent = { "type": "BackendError" } & BackendError | { "type": "BackendFatal" } & BackendFatal | { "type": "BackendReady" } & BackendInfo | { "type": "BackendShutdown" } | { "type": "BackendWarning" } & BackendWarning | { "type": "BadFrontendEvent" } & BadFrontendEvent | { "type": "ConnectRequest" } & ConnectionInfo | { "type": "ConnectionRequestResponse" } & ConnectionRequestResponse | { "type": "AutoConnectionClose" } & ConnectionInfo | { "type": "ConnectionClose" } & ConnectionCloseOrBroken | { "type": "ConnectionBroken" } & ConnectionCloseOrBroken | { "type": "FileOffer" } & FileOffer | { "type": "FileTransferComplete" } & FileTransferComplete | { "type": "FileTransferError" } & FileTransferError | { "type": "FileTransferProgress" } & FileTransferProgress | { "type": "Message" } & BackendMessage;
