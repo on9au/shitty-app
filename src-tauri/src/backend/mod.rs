@@ -53,17 +53,18 @@ macro_rules! log_backend_info {
 async fn await_frontend_ready(
     frontend_event_rx: &mut mpsc::Receiver<js_api::frontend_event::FrontendEvent>,
     backend_event_tx: &mpsc::Sender<js_api::backend_event::BackendEvent>,
-) -> bool {
+) -> Option<String> {
     info!("Awaiting confirmation from the frontend...");
     match frontend_event_rx.recv().await {
-        Some(js_api::frontend_event::FrontendEvent::FrontendReady) => {
+        Some(js_api::frontend_event::FrontendEvent::FrontendReady(
+            js_api::frontend_event::BackendStartupConfig { bind_addr },
+        )) => {
             info!("Frontend is ready to receive messages from the backend.");
-            true
+            Some(bind_addr)
         }
         Some(other_event) => {
             let error_msg = format!(
-                "Unexpected event received from the frontend. Expected: {:?}, but got: {:?}",
-                js_api::frontend_event::FrontendEvent::FrontendReady,
+                "Unexpected event received from the frontend. Expected: FrontendEvent::FrontendReady, but got: {:?}",
                 other_event
             );
             error!(error_msg);
@@ -76,7 +77,7 @@ async fn await_frontend_ready(
                 .await
                 .expect("Failed to send BackendFatal event to the frontend");
 
-            false
+            None
         }
         None => {
             let error_msg = "Frontend event receiver closed unexpectedly.";
@@ -85,7 +86,7 @@ async fn await_frontend_ready(
 
             error!("Terminating backend...");
 
-            false
+            None
         }
     }
 }
@@ -128,9 +129,13 @@ pub async fn init(
 
     // Awaiting confirmation from the frontend that it is ready
     // to receive messages from the backend.
-    if !await_frontend_ready(&mut frontend_event_rx, &backend_event_tx).await {
-        return;
-    }
+    // if !await_frontend_ready(&mut frontend_event_rx, &backend_event_tx).await {
+    //     return;
+    // }
+    let socket_addr = match await_frontend_ready(&mut frontend_event_rx, &backend_event_tx).await {
+        Some(socket_addr) => socket_addr,
+        None => return,
+    };
 
     // Verify mpsc channel communication with the frontend is working
     if !verify_mpsc_channel(&backend_event_tx).await {
@@ -147,10 +152,10 @@ pub async fn init(
     // Start the PeerManager
     let peer_manager_thread = tokio::spawn(async move {
         peer_manager
-            .start("0.0.0.0:8080")
+            .start(socket_addr.as_str())
             .await
             .map_err(|e| {
-                error!(?e, "PeerManager panicked, terminating backend");
+                error!(?e, "PeerManager returned an error, terminating backend");
                 e
             })
             .unwrap();
@@ -162,7 +167,7 @@ pub async fn init(
             .start()
             .await
             .map_err(|e| {
-                error!(?e, "FrontendManager panicked, terminating backend");
+                error!(?e, "FrontendManager returned an error, terminating backend");
                 e
             })
             .unwrap();

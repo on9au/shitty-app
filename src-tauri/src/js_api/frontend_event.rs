@@ -25,7 +25,7 @@ pub enum FrontendEvent {
     CancelFileTransfer(CancelFileTransfer),
 
     /// Startup: Frontend is ready to receive messages from the backend.
-    FrontendReady,
+    FrontendReady(BackendStartupConfig),
     /// Shutdown: Shutdown the backend gracefully.
     Shutdown,
 }
@@ -89,6 +89,14 @@ pub struct CancelFileTransfer {
     pub unique_id: u64,
     /// Optional message to send with the cancellation.
     pub message: Option<String>,
+}
+
+/// Struct representing the configuration for the backend startup.
+#[derive(Debug, Clone, Serialize, Deserialize, TS)]
+#[ts(export)]
+pub struct BackendStartupConfig {
+    /// Socket address to bind to. (e.g. "0.0.0.0:8080 or [::1]:8080")
+    pub bind_addr: String,
 }
 
 /// Async Process Input Transmitter State
