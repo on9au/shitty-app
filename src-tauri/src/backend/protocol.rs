@@ -56,8 +56,8 @@ pub struct DisconnectRequest {
 #[derive(Debug, Serialize, Deserialize)]
 pub enum ConnectionPermit {
     Permit {
-        /// The ECDSA public key of the peer
-        identitiy: EcdsaConnectionInfo,
+        /// The ConnectionInfo of the peer
+        identitiy: ConnectionInfo,
     },
     Deny,
 }

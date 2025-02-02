@@ -4,7 +4,9 @@ use crate::{
     backend::{
         frontend_manager::FrontendManager,
         peer_manager::PeerState,
-        protocol::{ConnectionPermit, ConnectionResponse, EcdsaConnectionInfo, Message},
+        protocol::{
+            ConnectionInfo, ConnectionPermit, ConnectionResponse, EcdsaConnectionInfo, Message,
+        },
     },
     js_api::{
         backend_event::{BackendEvent, BadFrontendEvent},
@@ -51,10 +53,14 @@ impl FrontendManager {
                     );
                     let connection_response = ConnectionResponse {
                         permit: ConnectionPermit::Permit {
-                            identitiy: EcdsaConnectionInfo {
-                                public_key: vec![], // TODO: Implement
-                                signature: vec![],  // TODO: Implement
-                                nonce: vec![],      // TODO: Implement
+                            identitiy: ConnectionInfo {
+                                name: "todo!".to_string(),
+                                backend_version: env!("CARGO_PKG_VERSION").to_string(),
+                                identitiy: EcdsaConnectionInfo {
+                                    public_key: vec![], // TODO: Implement this
+                                    signature: vec![],  // TODO: Implement this
+                                    nonce: vec![],      // TODO: Implement this
+                                },
                             },
                         },
                         message: connection_request_response.message.clone(),

@@ -1,7 +1,7 @@
 use serde::{Deserialize, Serialize};
 use ts_rs::TS;
 
-use super::frontend_event::FrontendEvent;
+use super::frontend_event::{self, FrontendEvent};
 
 /// Enum of events that occur in the backend and should be sent to the frontend.
 #[derive(Debug, Clone, Serialize, Deserialize, TS)]
@@ -26,6 +26,8 @@ pub enum BackendEvent {
 
     /// Response Required: A connection request received from a peer.
     ConnectRequest(ConnectionInfo),
+    /// Notification:      A rejected connection request response.
+    ConnectionRequestResponse(ConnectionRequestResponse),
     /// Notification:      An automatic connection closure due to an error.
     /// For example, invalid version, blacklisted IP/name, etc.
     AutoConnectionClose(ConnectionInfo),
@@ -101,6 +103,18 @@ pub struct ConnectionInfo {
     /// The ECDSA public key of the connection.
     /// As a string encoded in base64.
     pub identitiy: String,
+}
+
+/// Struct representing a connection request rejection.
+#[derive(Debug, Clone, Serialize, Deserialize, TS)]
+#[ts(export)]
+pub struct ConnectionRequestResponse {
+    /// Accepted or rejected?
+    pub accept: bool,
+    /// The IP address of the peer that rejected the connection request.
+    pub ip: String,
+    /// The reason for the rejection.
+    pub reason: Option<String>,
 }
 
 /// Struct representing an unexpected connection closure.

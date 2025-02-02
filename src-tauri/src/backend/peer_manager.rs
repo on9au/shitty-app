@@ -41,7 +41,7 @@ impl Drop for Peer {
     fn drop(&mut self) {
         match &self.state {
             PeerState::Connected { .. } => {
-                info!("Peer improperly disconnected: {:?}", self);
+                info!("Peer disconnected during authentication: {:?}", self);
             }
             PeerState::Authenticated { .. } => {
                 info!("Peer improperly disconnected: {:?}", self);
@@ -270,7 +270,10 @@ impl PeerManager {
                 self.handle_connect_request(connection_info, peer_addr)
                     .await;
             }
-            Message::ConnectResponse(_connection_response) => todo!(),
+            Message::ConnectResponse(connection_response) => {
+                self.handle_connect_response(connection_response, peer_addr)
+                    .await;
+            }
             Message::DisconnectRequest(disconnect_request) => {
                 self.handle_disconnect_request(disconnect_request, peer_addr)
                     .await;
