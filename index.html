@@ -1,4 +1,4 @@
-<!doctype html>
+<!-- <!doctype html>
 <html lang="en">
   <head>
     <meta charset="UTF-8" />
@@ -38,6 +38,42 @@
         <button type="submit">Greet</button>
       </form>
       <p id="greet-msg"></p>
+    </main>
+  </body>
+</html> -->
+
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <link rel="stylesheet" href="/src/styles.css" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Tauri App</title>
+    <script type="module" src="/src/main.ts" defer></script>
+  </head>
+  <body>
+    <main class="container">
+      <h1>Tauri Frontend Events</h1>
+      <div class="row">
+        <select id="event-type">
+          <option value="CustomEvent">CustomEvent</option>
+          <option value="ConnectRequest">ConnectRequest</option>
+          <option value="DisconnectRequest">DisconnectRequest</option>
+          <option
+            value="ConnectionRequestResponse">ConnectionRequestResponse</option>
+          <option value="TransmitFile">TransmitFile</option>
+          <option value="FileOfferResponse">FileOfferResponse</option>
+          <option value="CancelFileTransfer">CancelFileTransfer</option>
+          <option value="FrontendReady">FrontendReady</option>
+          <option value="Shutdown">Shutdown</option>
+        </select>
+        <textarea id="event-data"
+          placeholder="Enter event data as JSON..."></textarea>
+        <button id="send-event">Send Event</button>
+      </div>
+      <div id="error-message" style="color: red;"></div>
+      <h2>Backend Events</h2>
+      <div id="backend-events"></div>
     </main>
   </body>
 </html>

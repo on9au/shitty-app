@@ -1,7 +1,10 @@
 use tokio::sync::mpsc;
 use tracing::{error, info};
 
-use crate::js_api::{self, backend_event::BackendFatal};
+use crate::js_api::{
+    self,
+    backend_event::{BackendEvent, BackendFatal},
+};
 
 pub mod ecdsa_identity;
 pub mod frontend_handlers;
@@ -169,9 +172,19 @@ pub async fn init(
     tokio::select! {
         _ = peer_manager_thread => {
             error!("PeerManager thread terminated unexpectedly, terminating backend...");
+            backend_event_tx.send(
+                BackendEvent::BackendFatal(BackendFatal {
+                    message: "PeerManager thread terminated unexpectedly. Terminating backend. Please check logs for more information.".to_string()
+                })
+            ).await.expect("Failed to send BackendFatal event to the frontend");
         }
         _ = frontend_manager_thread => {
             error!("FrontendManager thread terminated unexpectedly, terminating backend...");
+            backend_event_tx.send(
+                BackendEvent::BackendFatal(BackendFatal {
+                    message: "FrontendManager thread terminated unexpectedly. Terminating backend. Please check logs for more information.".to_string()
+                })
+            ).await.expect("Failed to send BackendFatal event to the frontend");
         }
     }
 }
