@@ -10,7 +10,7 @@ impl PeerManager {
         // Send a keep-alive message back to the peer
         // after a short delay (10 seconds) to prevent TCP connections from timing out
         // (Time out is 30 seconds)
-        tokio::time::sleep(std::time::Duration::from_secs(15)).await;
+        tokio::time::sleep(std::time::Duration::from_secs(10)).await;
         let peers = self.active_peers.lock().await;
         // If the peer is not found, they have already disconnected, return.
         if let Some(peer) = peers.get(&peer_addr) {
