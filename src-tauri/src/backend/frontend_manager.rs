@@ -88,8 +88,12 @@ impl FrontendManager {
     /// Handle the frontend event
     async fn handle_frontend_event(&mut self, event: FrontendEvent) {
         match event {
-            FrontendEvent::ConnectRequest(_connect_request) => todo!(),
-            FrontendEvent::DisconnectRequest(_disconnect_request) => todo!(),
+            FrontendEvent::ConnectRequest(connect_request) => {
+                self.handle_connect_request(connect_request).await;
+            }
+            FrontendEvent::DisconnectRequest(disconnect_request) => {
+                self.handle_disconnect_request(disconnect_request).await;
+            }
             FrontendEvent::ConnectionRequestResponse(connection_request_response) => {
                 self.handle_connection_request_response(connection_request_response)
                     .await;

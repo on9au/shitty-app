@@ -141,7 +141,10 @@ impl PeerManager {
     }
 
     /// Begin listening for incoming connections from new peers
-    pub async fn start(&self, listen_addr: &str) -> Result<(), Box<dyn std::error::Error>> {
+    pub async fn start(
+        &self,
+        listen_addr: &str,
+    ) -> Result<(), Box<dyn std::error::Error + Send + Sync>> {
         let listener = TcpListener::bind(listen_addr).await?;
         let (shutdown_tx, mut shutdown_rx) = oneshot::channel(); // Create a shutdown signal
 
@@ -175,6 +178,35 @@ impl PeerManager {
                 }
             }
         }
+    }
+
+    /// Connect to a peer
+    pub async fn connect(
+        &self,
+        peer_addr: SocketAddr,
+    ) -> Result<(), Box<dyn std::error::Error + Send + Sync>> {
+        // Check if we are shut down
+        if self.shutdown_tx.lock().await.is_none() {
+            warn!("PeerManager is shut down. Cannot connect to peer.");
+            return Err("PeerManager is shut down".into());
+        }
+
+        // Check if we are already connected to the peer
+        if self.active_peers.lock().await.contains_key(&peer_addr) {
+            warn!("Already connected to peer {}", peer_addr);
+            return Err("Already connected to peer".into());
+        }
+
+        // Connect to the peer
+        let stream = TcpStream::connect(peer_addr).await?;
+
+        info!("Connection accepted from {}", peer_addr);
+        let manager = self.clone();
+        tokio::spawn(async move {
+            manager.handle_connection(stream, peer_addr).await;
+        });
+
+        Ok(())
     }
 
     /// Handle connections from a peer
