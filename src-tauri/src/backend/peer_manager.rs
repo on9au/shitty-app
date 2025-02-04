@@ -338,7 +338,10 @@ impl PeerManager {
             Message::DisconnectAck => {
                 self.handle_disconnect_ack(peer_addr).await;
             }
-            Message::ImmediateConnectionClose(_disconnect_request) => todo!(),
+            Message::ImmediateConnectionClose(disconnect_request) => {
+                self.handle_immediate_connection_close(disconnect_request, peer_addr)
+                    .await;
+            }
             Message::FileOfferRequest(_file_offer) => todo!(),
             Message::FileOfferResponse(_file_offer_response) => todo!(),
             Message::FileChunk(_file_chunk) => todo!(),
