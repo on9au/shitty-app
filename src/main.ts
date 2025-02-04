@@ -1,6 +1,7 @@
 import { invoke } from "@tauri-apps/api/core";
 import { listen } from "@tauri-apps/api/event";
-import { BackendEvent, FrontendEvent } from './bindings';
+import { BackendEvent } from "./bindings/BackendEvent";
+import { FrontendEvent } from "./bindings/FrontendEvent";
 
 // Type guard for backend events
 function isBackendEvent(event: any): event is BackendEvent {
@@ -76,27 +77,27 @@ document.addEventListener("DOMContentLoaded", async () => {
   sidebarLinks.forEach(link => {
     link.addEventListener("click", async (e) => {
       e.preventDefault();
-      
+
       // Hide all content sections
       contentSections.forEach(section => {
         section.classList.remove("active");
       });
-      
+
       // Show the selected content section
       const sectionId = link.getAttribute("data-section");
       if (sectionId) {
         const targetSection = document.getElementById(sectionId);
         if (targetSection) {
           targetSection.classList.add("active");
-          
+
           // Send navigation event to backend
           await sendFrontendEvent({
             type: 'Navigation',
-            page: sectionId
+            data: sectionId
           });
         }
       }
-      
+
       // On mobile, close the sidebar after selection
       if (window.innerWidth <= 768) {
         sidebar.classList.remove("open");

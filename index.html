@@ -1,49 +1,51 @@
 <!DOCTYPE html>
 <html lang="en">
-<head>
-  <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600&display=swap" rel="stylesheet">
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <link rel="stylesheet" href="src/styles.css">
-  <title>Da p2p file transfer</title>
-</head>
-<body>
-  <header class="header">
-    <button id="toggleSidebar">☰</button>
-    <span id="header-text">My App</span>
-    <span id="status" class="status"></span>
-  </header>
+  <head>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link
+      href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600&display=swap"
+      rel="stylesheet">
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="src/styles.css">
+    <title>Da p2p file transfer</title>
+  </head>
+  <body>
+    <header class="header">
+      <button id="toggleSidebar">☰</button>
+      <span id="header-text">My App</span>
+      <span id="status" class="status"></span>
+    </header>
 
-  <div id="error-message" class="error-message"></div>
+    <div id="error-message" class="error-message"></div>
 
-  <div id="container">
-    <div id="sidebar">
-      <ul>
-        <li><a href="#" data-section="home">Home</a></li>
-        <li><a href="#" data-section="about">About</a></li>
-        <li><a href="#" data-section="contact">Contact</a></li>
-      </ul>
+    <div id="container">
+      <div id="sidebar">
+        <ul>
+          <li><a href="#" data-section="home">Home</a></li>
+          <li><a href="#" data-section="about">About</a></li>
+          <li><a href="#" data-section="contact">Contact</a></li>
+        </ul>
+      </div>
+
+      <div id="main-content">
+        <div id="home" class="content-section active">
+          skibidi app
+        </div>
+
+        <div id="about" class="content-section">
+          <h2>About Us</h2>
+          <p>About us pluh</p>
+        </div>
+
+        <div id="contact" class="content-section">
+          <h2>Contact Us</h2>
+          <p>contact info? nah fix shit urself</p>
+        </div>
+      </div>
     </div>
 
-    <div id="main-content">
-      <div id="home" class="content-section active">
-        skibidi app
-      </div>
-      
-      <div id="about" class="content-section">
-        <h2>About Us</h2>
-        <p>About us pluh</p>
-      </div>
-      
-      <div id="contact" class="content-section">
-        <h2>Contact Us</h2>
-        <p>contact info? nah fix shit urself</p>
-      </div>
-    </div>
-  </div>
-
-  <script src="src/main.ts"></script>
-</body>
+    <script type="module" src="src/main.ts"></script>
+  </body>
 </html>
