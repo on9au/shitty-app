@@ -229,6 +229,7 @@ impl PeerManager {
 
         // Spawn a task to read from the peer
         let manager_clone = self.clone();
+        let manager_clone_clone = self.clone();
         tokio::spawn(async move {
             manager_clone.read_messages(reader, peer_addr).await;
         });
@@ -251,17 +252,36 @@ impl PeerManager {
                 match bincode::serialize(&message) {
                     Ok(bytes) => {
                         if writer.writable().await.is_ok() {
-                            if let Err(e) = writer.write_all(&bytes).await {
-                                warn!("Failed to send message: {}", e);
+                            let len = (bytes.len() as u32).to_be_bytes();
+
+                            // Write the length of the message
+                            if let Err(e) = writer.write_all(&len).await {
+                                warn!("Failed to send message length: {}", e);
+
+                                // Remove peer from active peers to drop the sender
+                                manager_clone_clone
+                                    .drop_peer(
+                                        peer_addr,
+                                        format!("Failed to send message len: {}", e).into(),
+                                    )
+                                    .await;
+
                                 break;
                             }
 
-                            // Force flush periodically to improve real-time file transfer
-                            if matches!(message, Message::FileChunk(_)) {
-                                if let Err(e) = writer.flush().await {
-                                    warn!("Failed to flush: {}", e);
-                                    break;
-                                }
+                            // Write the data of the message
+                            if let Err(e) = writer.write_all(&bytes).await {
+                                warn!("Failed to send message: {}", e);
+
+                                // Remove peer from active peers to drop the sender
+                                manager_clone_clone
+                                    .drop_peer(
+                                        peer_addr,
+                                        format!("Failed to send message data: {}", e).into(),
+                                    )
+                                    .await;
+
+                                break;
                             }
                         }
                     }
@@ -273,15 +293,60 @@ impl PeerManager {
 
     /// Read messages from a peer
     async fn read_messages(&self, mut stream: OwnedReadHalf, peer_addr: SocketAddr) {
-        let mut buf: [u8; 4096] = [0; 4096]; // 4KB buffer
+        let mut len_buf = [0u8; 4]; // 4-byte length buffer
 
-        // Read loop
         'recv: loop {
-            match tokio::time::timeout(tokio::time::Duration::from_secs(30), stream.read(&mut buf))
-                .await
-            {
-                // EOF, connection closed
-                Ok(Ok(0)) => {
+            // Read the length of the message
+            match stream.read_exact(&mut len_buf).await {
+                Ok(_) => {
+                    let len = u32::from_be_bytes(len_buf) as usize;
+                    let mut buf = vec![0u8; len];
+
+                    // Read the message
+                    match stream.read_exact(&mut buf).await {
+                        Ok(_) => {
+                            let message: Message = match bincode::deserialize(&buf) {
+                                Ok(message) => message,
+                                Err(e) => {
+                                    warn!(
+                                        "Failed to deserialize peer message: {}. Closing connection. Err: {}",
+                                        peer_addr, e
+                                    );
+                                    trace!(
+                                        "Raw contents of message from {}: {:?}",
+                                        peer_addr,
+                                        &buf
+                                    );
+
+                                    // Remove peer from active peers to drop the sender
+                                    self.drop_peer(
+                                        peer_addr,
+                                        format!("Failed to deserialize peer message: {}", e).into(),
+                                    )
+                                    .await;
+
+                                    break 'recv;
+                                }
+                            };
+                            self.handle_message(message, peer_addr).await;
+                        }
+                        Err(e) => {
+                            warn!(
+                                "Failed to read data buffer from peer: {}. Closing connection. Err: {}",
+                                peer_addr, e
+                            );
+
+                            self.drop_peer(
+                                peer_addr,
+                                format!("Failed to read data buffer from peer: {}", e).into(),
+                            )
+                            .await;
+
+                            break 'recv;
+                        }
+                    }
+                }
+                Err(e) if e.kind() == tokio::io::ErrorKind::UnexpectedEof => {
                     // EOF, connection closed
                     // Check if this was a normal close or a broken pipe
 
@@ -289,57 +354,17 @@ impl PeerManager {
 
                     break 'recv;
                 }
-                // Deserialize message and handle it
-                Ok(Ok(n)) => {
-                    let message: Message = match bincode::deserialize(&buf[..n]) {
-                        Ok(message) => message,
-                        Err(e) => {
-                            warn!(
-                                "Failed to deserialize peer message: {}. Closing connection. Err: {}",
-                                peer_addr, e
-                            );
-                            trace!(
-                                "Raw contents of message from {}: {:?}",
-                                peer_addr,
-                                &buf[..n]
-                            );
-
-                            // Remove peer from active peers to drop the sender
-                            self.drop_peer(
-                                peer_addr,
-                                format!("Failed to deserialize peer message: {}", e).into(),
-                            )
-                            .await;
-
-                            break 'recv;
-                        }
-                    };
-                    self.handle_message(message, peer_addr).await;
-                }
-                // Error reading from stream
-                Ok(Err(e)) => {
+                Err(e) => {
                     warn!(
-                        "Failed to read buffer from peer: {}. Closing connection. Err: {}",
+                        "Failed to read len buffer from peer: {}. Closing connection. Err: {}",
                         peer_addr, e
                     );
 
                     self.drop_peer(
                         peer_addr,
-                        format!("Failed to read buffer from peer: {}", e).into(),
+                        format!("Failed to read len buffer from peer: {}", e).into(),
                     )
                     .await;
-
-                    break 'recv;
-                }
-                // Timeout reading from stream
-                Err(_) => {
-                    warn!(
-                        "Timeout reading from peer {}. Closing connection.",
-                        peer_addr
-                    );
-
-                    self.drop_peer(peer_addr, "Timeout reading from peer.".to_string().into())
-                        .await;
 
                     break 'recv;
                 }
