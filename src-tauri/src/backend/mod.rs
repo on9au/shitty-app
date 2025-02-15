@@ -119,7 +119,7 @@ pub async fn init(
     // Events sender from tokio -> main thread -> js
     backend_event_tx: mpsc::Sender<js_api::backend_event::BackendEvent>,
 ) {
-    info!("Hello from the backend!");
+    info!("kuaip2p backend starting...");
 
     // Log versions and other important information
     log_backend_info!();

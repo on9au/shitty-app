@@ -26,13 +26,17 @@ document.addEventListener("DOMContentLoaded", async () => {
   // Function to handle backend events
   function handleBackendEvent(event: BackendEvent) {
     switch (event.type) {
-      case 'UpdateStatus':
-        updateStatus(event.status);
-        break;
-      case 'Error':
+      case 'BackendError':
         showError(event.message);
         break;
-      // Add more cases as needed based on your backend events
+      case 'BackendFatal':
+        showError(event.message);
+        break;
+      case 'FatalLostComms':
+        showError('Frontend lost communication with backend. Please restart the app and try again.');
+        break;
+      default:
+        console.log('Unhandled backend event:', event);
     }
   }
 
