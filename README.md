@@ -2,6 +2,12 @@
 
 a shitty p2p file/chat app
 
+frontend is extremely incomplete (cgtv come on mate smh)
+
+backend is very sigma and like halfway done, the actual file transfer stuff as a todo (cuz im that sigma)
+
+we (me and cgtv32) have not touched this project in ages cuz we have SACs 🎒 and SATs 😫!!!111!11111 🤯
+
 ## rust msrv and node version
 
 - rust: Latest stable
