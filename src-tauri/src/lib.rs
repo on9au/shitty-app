@@ -1,9 +1,12 @@
+use std::fs::OpenOptions;
+
 use js_api::{
     backend_event::BackendEvent,
     frontend_event::{FrontendEvent, FrontendEventTx},
 };
 use tokio::sync::mpsc;
 use tracing::debug;
+use tracing_subscriber::{layer::SubscriberExt, Layer};
 
 pub mod backend;
 pub mod js_api;
@@ -21,17 +24,47 @@ fn is_name_cringe(name: &str) -> bool {
 
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
 pub fn run() {
+    // File to log to
+    let log_file = OpenOptions::new()
+        .create(true)
+        .write(true)
+        .truncate(true)
+        .open("kuaip2p.log")
+        .expect("failed to open log file");
+
     // Tracing (Debug)
     #[cfg(debug_assertions)]
-    tracing_subscriber::fmt::fmt()
-        .with_max_level(tracing::Level::TRACE)
-        .init();
+    let subscriber = tracing_subscriber::registry::Registry::default()
+        .with(
+            tracing_subscriber::fmt::layer()
+                .compact()
+                .with_ansi(true)
+                .with_filter(tracing_subscriber::filter::LevelFilter::TRACE),
+        )
+        .with(
+            tracing_subscriber::fmt::layer()
+                .with_writer(log_file)
+                .with_ansi(false)
+                .with_filter(tracing_subscriber::filter::LevelFilter::TRACE),
+        );
 
     // Tracing (Release)
     #[cfg(not(debug_assertions))]
-    tracing_subscriber::fmt::fmt()
-        .with_max_level(tracing::Level::INFO)
-        .init();
+    let subscriber = tracing_subscriber::registry::Registry::default()
+        .with(
+            tracing_subscriber::fmt::layer()
+                .compact()
+                .with_ansi(true)
+                .with_filter(tracing_subscriber::filter::LevelFilter::INFO),
+        )
+        .with(
+            tracing_subscriber::fmt::layer()
+                .with_writer(log_file)
+                .with_ansi(false)
+                .with_filter(tracing_subscriber::filter::LevelFilter::INFO),
+        );
+
+    tracing::subscriber::set_global_default(subscriber).unwrap();
 
     // Create message passing channels
     // (Frontend Events) Js -> Main Thread -> Tokio
