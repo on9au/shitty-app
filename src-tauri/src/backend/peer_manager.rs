@@ -30,7 +30,7 @@ pub struct PeerManager {
 }
 
 /// File Transfer Direction
-#[derive(Debug)]
+#[derive(Debug, PartialEq)]
 pub enum FileTransferDirection {
     Sending,
     Receiving,

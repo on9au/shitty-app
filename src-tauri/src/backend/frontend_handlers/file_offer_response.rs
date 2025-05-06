@@ -3,7 +3,7 @@ use uuid::Uuid;
 use crate::{
     backend::{
         frontend_manager::FrontendManager,
-        peer_manager::FileTransferStatus,
+        peer_manager::{FileTransferDirection, FileTransferStatus},
         protocol::{self, Message},
     },
     js_api::{
@@ -40,6 +40,19 @@ impl FrontendManager {
         let mut active_transfers = self.peer_manager.active_transfers.lock().await;
 
         if let Some(transfer) = active_transfers.get_mut(&unique_id) {
+            // We cannot "accept" a file offer if we are the one sending the file.
+            if transfer.direction == FileTransferDirection::Sending {
+                self.peer_manager
+                    .backend_event_tx
+                    .send(BackendEvent::BadFrontendEvent(BadFrontendEvent {
+                        event: FrontendEvent::FileOfferResponse(file_offer_response),
+                        error: "Cannot accept a file offer when sending a file.".to_string(),
+                    }))
+                    .await
+                    .expect("Failed to send BadFrontendEvent event to the backend");
+                return;
+            }
+
             // Send the file offer response to the peer
             if let Some(peer) = self
                 .peer_manager
