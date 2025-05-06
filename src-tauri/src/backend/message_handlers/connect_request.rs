@@ -1,6 +1,6 @@
 use std::net::SocketAddr;
 
-use base64::{prelude::BASE64_STANDARD, Engine};
+// use base64::{Engine, prelude::BASE64_STANDARD};
 
 use crate::{
     backend::{
@@ -30,7 +30,7 @@ impl PeerManager {
                     name: connection_info.name.clone(),
                     ip: peer_addr.to_string(),
                     backend_version: connection_info.backend_version.clone(),
-                    identitiy: BASE64_STANDARD.encode(connection_info.identitiy.public_key.clone()),
+                    // identitiy: BASE64_STANDARD.encode(connection_info.identitiy.public_key.clone()),
                 },
             ))
             .await
@@ -44,7 +44,7 @@ impl PeerManager {
                     peer_info: Some(PeerInfo {
                         name: connection_info.name,
                         backend_version: connection_info.backend_version,
-                        ecdsa_public_key: connection_info.identitiy.public_key,
+                        // ecdsa_public_key: connection_info.identitiy.public_key,
                     }),
                 };
             }

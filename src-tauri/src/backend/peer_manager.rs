@@ -1,6 +1,6 @@
 use std::{collections::HashMap, net::SocketAddr, sync::Arc};
 
-use base64::{Engine, prelude::BASE64_STANDARD};
+// use base64::{Engine, prelude::BASE64_STANDARD};
 use tokio::{
     io::{AsyncReadExt, AsyncWriteExt},
     net::{TcpListener, TcpStream, tcp::OwnedReadHalf},
@@ -87,8 +87,8 @@ pub enum PeerState {
 pub struct PeerInfo {
     /// The name of the peer
     pub name: String,
-    /// The ECDSA public key of the peer
-    pub ecdsa_public_key: Vec<u8>,
+    // /// The ECDSA public key of the peer
+    // pub ecdsa_public_key: Vec<u8>,
     /// The Backend version of the peer
     pub backend_version: String,
 }
@@ -432,7 +432,7 @@ impl PeerManager {
                     peer_info:
                         PeerInfo {
                             name,
-                            ecdsa_public_key,
+                            // ecdsa_public_key,
                             backend_version,
                         },
                 } => {
@@ -442,7 +442,7 @@ impl PeerManager {
                                 name: name.to_string(),
                                 ip: peer_addr.ip().to_string(),
                                 backend_version: backend_version.to_string(),
-                                identitiy: BASE64_STANDARD.encode(ecdsa_public_key),
+                                // identitiy: BASE64_STANDARD.encode(ecdsa_public_key),
                             },
                             message,
                         }))
@@ -456,7 +456,7 @@ impl PeerManager {
                                 name: peer_info.name.clone(),
                                 ip: peer_addr.ip().to_string(),
                                 backend_version: peer_info.backend_version.clone(),
-                                identitiy: BASE64_STANDARD.encode(&peer_info.ecdsa_public_key),
+                                // identitiy: BASE64_STANDARD.encode(&peer_info.ecdsa_public_key),
                             },
                             message: {
                                 if let Some(message) = message {

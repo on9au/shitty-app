@@ -29,7 +29,7 @@ impl PeerManager {
                         peer.state = PeerState::Authenticated {
                             peer_info: PeerInfo {
                                 name: identitiy.name,
-                                ecdsa_public_key: identitiy.identitiy.public_key,
+                                // ecdsa_public_key: identitiy.identitiy.public_key,
                                 backend_version: identitiy.backend_version,
                             },
                         };

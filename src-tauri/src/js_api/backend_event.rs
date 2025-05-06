@@ -106,9 +106,9 @@ pub struct ConnectionInfo {
     pub ip: String,
     /// The version of the backend.
     pub backend_version: String,
-    /// The ECDSA public key of the connection.
-    /// As a string encoded in base64.
-    pub identitiy: String,
+    // /// The ECDSA public key of the connection.
+    // /// As a string encoded in base64.
+    // pub identitiy: String,
 }
 
 /// Struct representing a connection request rejection.
