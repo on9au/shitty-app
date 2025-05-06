@@ -60,7 +60,7 @@ impl PeerManager {
                             total_size: file_offer.size,
                             bytes_transferred: 0,
                             chunk_len: file_offer.chunk_len,
-                            status: FileTransferStatus::InProgress,
+                            status: FileTransferStatus::WaitingForPeerResponse,
                         },
                     );
                 }
