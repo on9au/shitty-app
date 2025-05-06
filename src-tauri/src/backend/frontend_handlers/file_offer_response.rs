@@ -50,6 +50,11 @@ impl FrontendManager {
                     }))
                     .await
                     .expect("Failed to send BadFrontendEvent event to the backend");
+
+                // Update the transfer state to "Error"
+                transfer.status = FileTransferStatus::Error(
+                    "Cannot accept a file offer when sending a file.".to_string(),
+                );
                 return;
             }
 
@@ -75,8 +80,8 @@ impl FrontendManager {
                     transfer.status = FileTransferStatus::InProgress;
                 } else {
                     // Rejected.
-                    // Remove the transfer state from the active transfers
-                    active_transfers.remove(&unique_id);
+                    // Change the transfer state to "Rejected"
+                    transfer.status = FileTransferStatus::Rejected;
                 }
             } else {
                 // Peer is not connected, remove the transfer state

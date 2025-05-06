@@ -69,6 +69,8 @@ pub enum FileTransferStatus {
     Completed,
     /// The file transfer is cancelled (but was accepted)
     Cancelled,
+    /// The file transfer was rejected (not accepted)
+    Rejected,
     /// The file transfer failed
     Error(String),
 }
@@ -537,7 +539,10 @@ impl PeerManager {
             Message::FileOfferRequest(file_offer) => {
                 self.handle_file_offer_request(file_offer, peer_addr).await;
             }
-            Message::FileOfferResponse(_file_offer_response) => todo!(),
+            Message::FileOfferResponse(file_offer_response) => {
+                self.handle_file_offer_response(file_offer_response, peer_addr)
+                    .await;
+            }
             Message::FileChunk(_file_chunk) => todo!(),
             Message::FileChunkAck(_file_chunk_ack) => todo!(),
             Message::FileDone(_file_done) => todo!(),
