@@ -2,7 +2,7 @@ use std::net::SocketAddr;
 
 use crate::{
     backend::{
-        peer_manager::{PeerInfo, PeerManager, PeerState},
+        peer_manager::{PeerManager, PeerState},
         protocol::{ConnectionPermit, ConnectionResponse, Message},
     },
     js_api::backend_event::{BackendEvent, ConnectionRequestResponse},
