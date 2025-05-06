@@ -110,13 +110,13 @@ impl PeerManager {
         info!("Shutting down PeerManager");
 
         // Send a shutdown signal to the PeerManager
-        if let Some(shutdown_tx) = self.shutdown_tx.lock().await.take() {
+        match self.shutdown_tx.lock().await.take() { Some(shutdown_tx) => {
             shutdown_tx.send(()).ok();
             // self.shutdown_tx is now = None
-        } else {
+        } _ => {
             warn!("PeerManager has already been shutdown, or never started. Aborting shutdown.");
             return;
-        }
+        }}
 
         let mut active_peers = self.active_peers.lock().await;
         for (peer_addr, peer) in active_peers.drain() {
