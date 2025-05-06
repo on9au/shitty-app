@@ -5,7 +5,7 @@ use tracing::{debug, warn};
 use crate::{
     backend::{
         frontend_manager::FrontendManager,
-        protocol::{ConnectionInfo, EcdsaConnectionInfo, Message},
+        protocol::{ConnectionInfo, Message},
     },
     js_api::{
         backend_event::{BackendEvent, BadFrontendEvent},
@@ -49,11 +49,11 @@ impl FrontendManager {
                             .send(Message::ConnectRequest(ConnectionInfo {
                                 name: "todo!".to_string(),
                                 backend_version: env!("CARGO_PKG_VERSION").to_string(),
-                                identitiy: EcdsaConnectionInfo {
-                                    public_key: vec![], // todo!(),
-                                    signature: vec![],  // todo!(),
-                                    nonce: vec![],      // todo!(),
-                                },
+                                // identitiy: EcdsaConnectionInfo {
+                                //     public_key: vec![], // todo!(),
+                                //     signature: vec![],  // todo!(),
+                                //     nonce: vec![],      // todo!(),
+                                // },
                             }))
                             .await
                             .expect("Failed to send ConnectRequest message to the peer");

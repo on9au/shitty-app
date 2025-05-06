@@ -1,3 +1,18 @@
+//! # Protocol
+//!
+//! This module defines the protocol for peers to communicate with each other.
+//!
+//! ## Spec
+//!
+//! Consists of:
+//!
+//! - Main header (4 bytes): Packet Body Length (in bytes) (Big Endian)
+//! - Message body: The message itself, encoded using bincode v2 (Little Endian, variable length integers) (See [BINCODE_CONFIG])
+//!
+//! Maximum message size is 10 MB (10 * 1024 * 1024 bytes) (see [MAX_MESSAGE_SIZE])
+//!
+//! If the message size exceeds this limit, the connection will be closed immediately.
+
 use bincode::config::{self, Configuration};
 use once_cell::sync::Lazy;
 
@@ -8,6 +23,12 @@ pub static BINCODE_CONFIG: Lazy<Configuration> = Lazy::new(|| {
         .with_variable_int_encoding()
 });
 
+/// Maximum message size for the protocol in bytes (10 MB)
+pub const MAX_MESSAGE_SIZE: usize = 1024 * 1024 * 10; // 10 MB
+
+/// The Message Enum.
+///
+/// This is the protocol for the backend to communicate with the frontend.
 #[derive(Debug, bincode::Encode, bincode::Decode)]
 pub enum Message {
     /// Keep-alive message to prevent TCP connections from timing out
@@ -48,8 +69,8 @@ pub struct ConnectionInfo {
     pub name: String,
     // Use Cargo.toml to set the version
     pub backend_version: String,
-    /// The ECDSA public key of the peer
-    pub identitiy: EcdsaConnectionInfo,
+    // /// The ECDSA public key of the peer
+    // pub identitiy: EcdsaConnectionInfo,
 }
 
 #[derive(Debug, bincode::Encode, bincode::Decode)]

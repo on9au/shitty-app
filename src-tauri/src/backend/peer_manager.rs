@@ -10,7 +10,7 @@ use tracing::{debug, error, info, trace, warn};
 
 use crate::js_api::backend_event::{BackendEvent, ConnectionCloseOrBroken, ConnectionInfo};
 
-use super::protocol::{BINCODE_CONFIG, DisconnectRequest, Message};
+use super::protocol::{BINCODE_CONFIG, DisconnectRequest, MAX_MESSAGE_SIZE, Message};
 
 /// Peer Manager
 ///
@@ -257,6 +257,27 @@ impl PeerManager {
                 match bincode::encode_to_vec(&message, *BINCODE_CONFIG) {
                     Ok(bytes) => {
                         if writer.writable().await.is_ok() {
+                            // Check if we are sending a message larger than the maximum size
+                            if bytes.len() > MAX_MESSAGE_SIZE {
+                                warn!(
+                                    "We are trying to send a message to peer {} larger than the maximum size of {} bytes. THIS IS A BUG!",
+                                    peer_addr, MAX_MESSAGE_SIZE
+                                );
+
+                                // Remove peer from active peers to drop the sender
+                                manager_clone_clone
+                                    .drop_peer(
+                                        peer_addr,
+                                        Some(format!(
+                                            "We are trying to send a message to peer {} larger than the maximum size of {} bytes. THIS IS A BUG!",
+                                            peer_addr, MAX_MESSAGE_SIZE
+                                        )),
+                                    )
+                                    .await;
+
+                                break;
+                            }
+
                             let len = (bytes.len() as u32).to_be_bytes();
 
                             // Write the length of the message
@@ -305,7 +326,30 @@ impl PeerManager {
             match stream.read_exact(&mut len_buf).await {
                 Ok(_) => {
                     let len = u32::from_be_bytes(len_buf) as usize;
-                    let mut buf = vec![0u8; len];
+
+                    // Check if len is valid BEFORE allocating the buffer (prevent DoS)
+                    if len > MAX_MESSAGE_SIZE {
+                        warn!(
+                            "Peer {} sent a message larger than the maximum size of {} bytes. Closing connection.",
+                            peer_addr, MAX_MESSAGE_SIZE
+                        );
+
+                        debug!("Peer {} sent a len header with value: {}.", peer_addr, len);
+
+                        // Remove peer from active peers to drop the sender
+                        self.drop_peer(
+                            peer_addr,
+                            Some(format!(
+                                "Peer sent a message larger than the maximum size of {} bytes",
+                                MAX_MESSAGE_SIZE
+                            )),
+                        )
+                        .await;
+
+                        break 'recv;
+                    }
+
+                    let mut buf = vec![0u8; len]; // variable length buffer
 
                     // Read the message
                     match stream.read_exact(&mut buf).await {
@@ -314,7 +358,31 @@ impl PeerManager {
                                 &buf,
                                 *BINCODE_CONFIG,
                             ) {
-                                Ok((message, _)) => message,
+                                Ok((message, actual_len)) => {
+                                    // Check if the actual length of the message matches the length header
+                                    // This is a sanity check to prevent DoS attacks and malformed messages
+                                    if actual_len != len {
+                                        warn!(
+                                            "Peer {} sent a message with length {} bytes, but the actual length is {} bytes. Closing connection.",
+                                            peer_addr, len, actual_len
+                                        );
+
+                                        // Remove peer from active peers to drop the sender
+                                        self.drop_peer(
+                                            peer_addr,
+                                            Some(format!(
+                                                "Peer sent a message with length {} bytes, but the actual length is {} bytes",
+                                                len, actual_len
+                                            )),
+                                        )
+                                        .await;
+
+                                        break 'recv;
+                                    }
+
+                                    // return the message
+                                    message
+                                }
                                 Err(e) => {
                                     warn!(
                                         "Failed to deserialize peer message: {}. Closing connection. Err: {}",
