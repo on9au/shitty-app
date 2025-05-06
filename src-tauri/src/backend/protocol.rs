@@ -15,6 +15,7 @@
 
 use bincode::config::{self, Configuration};
 use once_cell::sync::Lazy;
+use uuid::Uuid;
 
 /// Bincode v2 Configuration static
 pub static BINCODE_CONFIG: Lazy<Configuration> = Lazy::new(|| {
@@ -96,20 +97,23 @@ pub enum ConnectionPermit {
 #[derive(Debug, bincode::Encode, bincode::Decode)]
 pub struct FileOffer {
     pub filename: String,
-    pub unique_id: u64,
+    #[bincode(with_serde)]
+    pub unique_id: Uuid,
     pub size: u64,
     pub chunk_len: u64,
 }
 
 #[derive(Debug, bincode::Encode, bincode::Decode)]
 pub struct FileOfferResponse {
-    pub unique_id: u64,
+    #[bincode(with_serde)]
+    pub unique_id: Uuid,
     pub accept: bool,
 }
 
 #[derive(Debug, bincode::Encode, bincode::Decode)]
 pub struct FileChunk {
-    pub unique_id: u64,
+    #[bincode(with_serde)]
+    pub unique_id: Uuid,
     pub chunk_id: u64,
     pub chunk_len: u64,
     pub data: Vec<u8>,
@@ -117,19 +121,22 @@ pub struct FileChunk {
 
 #[derive(Debug, bincode::Encode, bincode::Decode)]
 pub struct FileChunkAck {
-    pub unique_id: u64,
+    #[bincode(with_serde)]
+    pub unique_id: Uuid,
     pub chunk_id: u64,
 }
 
 #[derive(Debug, bincode::Encode, bincode::Decode)]
 pub struct FileDone {
-    pub unique_id: u64,
+    #[bincode(with_serde)]
+    pub unique_id: Uuid,
     pub checksum: Vec<u8>,
 }
 
 #[derive(Debug, bincode::Encode, bincode::Decode)]
 pub struct FileDoneResult {
-    pub unique_id: u64,
+    #[bincode(with_serde)]
+    pub unique_id: Uuid,
     pub success: bool,
     pub message: Option<String>,
 }

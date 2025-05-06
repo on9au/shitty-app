@@ -98,7 +98,9 @@ impl FrontendManager {
                 self.handle_connection_request_response(connection_request_response)
                     .await;
             }
-            FrontendEvent::TransmitFile(_transmit_file) => todo!(),
+            FrontendEvent::TransmitFile(transmit_file) => {
+                self.handle_transmit_file(transmit_file).await;
+            }
             FrontendEvent::FileOfferResponse(_file_offer_response) => todo!(),
             FrontendEvent::CancelFileTransfer(_cancel_file_transfer) => todo!(),
             FrontendEvent::FrontendReady(backend_startup_config) => {

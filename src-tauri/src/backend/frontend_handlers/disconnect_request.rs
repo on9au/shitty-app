@@ -111,7 +111,7 @@ impl FrontendManager {
         } else {
             // Peer is not connected
             // Ignore the request
-            warn!("Received a DisconnectRequest from a peer that is not connected.");
+            warn!("Tried to disconnect a peer that isn't connected (DisconnectRequest).");
 
             // Complain to the frontend
             self.peer_manager

@@ -69,6 +69,8 @@ pub struct ConnectionRequestResponse {
 #[derive(Debug, Clone, Serialize, Deserialize, TS)]
 #[ts(export)]
 pub struct TransmitFile {
+    /// The IP address of the peer to send the file to.
+    pub ip: String,
     /// The absolute path to the file to transmit.
     pub path: String,
     /// The filename to transmit.

@@ -7,6 +7,7 @@ use tokio::{
     sync::{Mutex, mpsc, oneshot},
 };
 use tracing::{debug, error, info, trace, warn};
+use uuid::Uuid;
 
 use crate::js_api::backend_event::{BackendEvent, ConnectionCloseOrBroken, ConnectionInfo};
 
@@ -20,10 +21,42 @@ pub struct PeerManager {
     /// List of connected peers
     /// Hashmap of peer's IP/Socket address to their mpsc sender
     pub(crate) active_peers: Arc<Mutex<HashMap<SocketAddr, Peer>>>,
+    /// File transfer state, keyed by File Transfer unique_id
+    pub(crate) active_transfers: Arc<Mutex<HashMap<Uuid, FileTransferState>>>,
     /// Reference to the backend event sender
     pub(crate) backend_event_tx: mpsc::Sender<BackendEvent>,
     /// Shutdown one-shot sender. If None, the PeerManager has been shutdown.
     pub(crate) shutdown_tx: Arc<Mutex<Option<oneshot::Sender<()>>>>,
+}
+
+/// File Transfer Direction
+#[derive(Debug)]
+pub enum FileTransferDirection {
+    Sending,
+    Receiving,
+}
+
+/// Represents the state of a file transfer.
+#[derive(Debug)]
+pub struct FileTransferState {
+    pub unique_id: Uuid,
+    pub peer_addr: std::net::SocketAddr,
+    pub direction: FileTransferDirection,
+    pub filename: String,
+    pub total_size: u64,
+    pub bytes_transferred: u64,
+    pub chunk_len: u64,
+    pub status: FileTransferStatus,
+    // Optionally: file handles, checksums, etc.
+}
+
+/// File Transfer Status
+#[derive(Debug)]
+pub enum FileTransferStatus {
+    InProgress,
+    Completed,
+    Cancelled,
+    Error(String),
 }
 
 /// Peer
@@ -98,6 +131,7 @@ impl PeerManager {
     pub fn new(backend_event_tx: mpsc::Sender<BackendEvent>) -> Self {
         Self {
             active_peers: Arc::new(Mutex::new(HashMap::new())),
+            active_transfers: Arc::new(Mutex::new(HashMap::new())),
             backend_event_tx,
             shutdown_tx: Arc::new(Mutex::new(None)),
         }
