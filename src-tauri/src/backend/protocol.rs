@@ -1,6 +1,14 @@
-use serde::{Deserialize, Serialize};
+use bincode::config::{self, Configuration};
+use once_cell::sync::Lazy;
 
-#[derive(Debug, Serialize, Deserialize)]
+/// Bincode v2 Configuration static
+pub static BINCODE_CONFIG: Lazy<Configuration> = Lazy::new(|| {
+    config::standard()
+        .with_little_endian()
+        .with_variable_int_encoding()
+});
+
+#[derive(Debug, bincode::Encode, bincode::Decode)]
 pub enum Message {
     /// Keep-alive message to prevent TCP connections from timing out
     KeepAlive,
@@ -28,14 +36,14 @@ pub enum Message {
     FileDoneResult(FileDoneResult),
 }
 
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Debug, bincode::Encode, bincode::Decode)]
 pub struct EcdsaConnectionInfo {
     pub public_key: Vec<u8>,
     pub signature: Vec<u8>,
     pub nonce: Vec<u8>,
 }
 
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Debug, bincode::Encode, bincode::Decode)]
 pub struct ConnectionInfo {
     pub name: String,
     // Use Cargo.toml to set the version
@@ -44,18 +52,18 @@ pub struct ConnectionInfo {
     pub identitiy: EcdsaConnectionInfo,
 }
 
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Debug, bincode::Encode, bincode::Decode)]
 pub struct ConnectionResponse {
     pub permit: ConnectionPermit,
     pub message: Option<String>,
 }
 
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Debug, bincode::Encode, bincode::Decode)]
 pub struct DisconnectRequest {
     pub message: Option<String>,
 }
 
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Debug, bincode::Encode, bincode::Decode)]
 pub enum ConnectionPermit {
     Permit {
         /// The ConnectionInfo of the peer
@@ -64,7 +72,7 @@ pub enum ConnectionPermit {
     Deny,
 }
 
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Debug, bincode::Encode, bincode::Decode)]
 pub struct FileOffer {
     pub filename: String,
     pub unique_id: u64,
@@ -72,13 +80,13 @@ pub struct FileOffer {
     pub chunk_len: u64,
 }
 
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Debug, bincode::Encode, bincode::Decode)]
 pub struct FileOfferResponse {
     pub unique_id: u64,
     pub accept: bool,
 }
 
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Debug, bincode::Encode, bincode::Decode)]
 pub struct FileChunk {
     pub unique_id: u64,
     pub chunk_id: u64,
@@ -86,19 +94,19 @@ pub struct FileChunk {
     pub data: Vec<u8>,
 }
 
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Debug, bincode::Encode, bincode::Decode)]
 pub struct FileChunkAck {
     pub unique_id: u64,
     pub chunk_id: u64,
 }
 
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Debug, bincode::Encode, bincode::Decode)]
 pub struct FileDone {
     pub unique_id: u64,
     pub checksum: Vec<u8>,
 }
 
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Debug, bincode::Encode, bincode::Decode)]
 pub struct FileDoneResult {
     pub unique_id: u64,
     pub success: bool,

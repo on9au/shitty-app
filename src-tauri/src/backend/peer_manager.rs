@@ -1,16 +1,16 @@
 use std::{collections::HashMap, net::SocketAddr, sync::Arc};
 
-use base64::{prelude::BASE64_STANDARD, Engine};
+use base64::{Engine, prelude::BASE64_STANDARD};
 use tokio::{
     io::{AsyncReadExt, AsyncWriteExt},
-    net::{tcp::OwnedReadHalf, TcpListener, TcpStream},
-    sync::{mpsc, oneshot, Mutex},
+    net::{TcpListener, TcpStream, tcp::OwnedReadHalf},
+    sync::{Mutex, mpsc, oneshot},
 };
 use tracing::{debug, error, info, trace, warn};
 
 use crate::js_api::backend_event::{BackendEvent, ConnectionCloseOrBroken, ConnectionInfo};
 
-use super::protocol::{DisconnectRequest, Message};
+use super::protocol::{BINCODE_CONFIG, DisconnectRequest, Message};
 
 /// Peer Manager
 ///
@@ -110,13 +110,18 @@ impl PeerManager {
         info!("Shutting down PeerManager");
 
         // Send a shutdown signal to the PeerManager
-        match self.shutdown_tx.lock().await.take() { Some(shutdown_tx) => {
-            shutdown_tx.send(()).ok();
-            // self.shutdown_tx is now = None
-        } _ => {
-            warn!("PeerManager has already been shutdown, or never started. Aborting shutdown.");
-            return;
-        }}
+        match self.shutdown_tx.lock().await.take() {
+            Some(shutdown_tx) => {
+                shutdown_tx.send(()).ok();
+                // self.shutdown_tx is now = None
+            }
+            _ => {
+                warn!(
+                    "PeerManager has already been shutdown, or never started. Aborting shutdown."
+                );
+                return;
+            }
+        }
 
         let mut active_peers = self.active_peers.lock().await;
         for (peer_addr, peer) in active_peers.drain() {
@@ -249,7 +254,7 @@ impl PeerManager {
                     _ => info!("Sending control message: {:?}", message),
                 }
 
-                match bincode::serialize(&message) {
+                match bincode::encode_to_vec(&message, *BINCODE_CONFIG) {
                     Ok(bytes) => {
                         if writer.writable().await.is_ok() {
                             let len = (bytes.len() as u32).to_be_bytes();
@@ -305,8 +310,11 @@ impl PeerManager {
                     // Read the message
                     match stream.read_exact(&mut buf).await {
                         Ok(_) => {
-                            let message: Message = match bincode::deserialize(&buf) {
-                                Ok(message) => message,
+                            let message: Message = match bincode::decode_from_slice(
+                                &buf,
+                                *BINCODE_CONFIG,
+                            ) {
+                                Ok((message, _)) => message,
                                 Err(e) => {
                                     warn!(
                                         "Failed to deserialize peer message: {}. Closing connection. Err: {}",
@@ -314,8 +322,7 @@ impl PeerManager {
                                     );
                                     trace!(
                                         "Raw contents of message from {}: {:?}",
-                                        peer_addr,
-                                        &buf
+                                        peer_addr, &buf
                                     );
 
                                     // Remove peer from active peers to drop the sender
