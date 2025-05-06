@@ -101,7 +101,9 @@ impl FrontendManager {
             FrontendEvent::TransmitFile(transmit_file) => {
                 self.handle_transmit_file(transmit_file).await;
             }
-            FrontendEvent::FileOfferResponse(_file_offer_response) => todo!(),
+            FrontendEvent::FileOfferResponse(file_offer_response) => {
+                self.handle_file_offer_response(file_offer_response).await;
+            }
             FrontendEvent::CancelFileTransfer(_cancel_file_transfer) => todo!(),
             FrontendEvent::FrontendReady(backend_startup_config) => {
                 // We are already beyond the program initialization stage.

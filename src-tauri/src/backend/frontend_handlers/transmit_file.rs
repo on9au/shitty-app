@@ -99,7 +99,7 @@ impl FrontendManager {
                             total_size: size,
                             bytes_transferred: 0,
                             chunk_len,
-                            status: FileTransferStatus::InProgress,
+                            status: FileTransferStatus::WaitingForPeerResponse,
                         },
                     );
                 }

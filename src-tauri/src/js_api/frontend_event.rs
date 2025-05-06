@@ -81,8 +81,8 @@ pub struct TransmitFile {
 #[derive(Debug, Clone, Serialize, Deserialize, TS)]
 #[ts(export)]
 pub struct FileOfferResponse {
-    /// The unique identifier of the file being offered.
-    pub unique_id: u64,
+    /// The unique identifier of the file being offered. (UUID)
+    pub unique_id: String,
     /// Whether the file offer is accepted.
     pub accept: bool,
 }
@@ -91,8 +91,8 @@ pub struct FileOfferResponse {
 #[derive(Debug, Clone, Serialize, Deserialize, TS)]
 #[ts(export)]
 pub struct CancelFileTransfer {
-    /// The unique identifier of the file transfer to cancel.
-    pub unique_id: u64,
+    /// The unique identifier of the file transfer to cancel. (UUID)
+    pub unique_id: String,
     /// Optional message to send with the cancellation.
     pub message: Option<String>,
 }

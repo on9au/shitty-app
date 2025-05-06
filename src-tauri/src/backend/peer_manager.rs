@@ -61,9 +61,15 @@ pub struct FileTransferState {
 /// File Transfer Status
 #[derive(Debug)]
 pub enum FileTransferStatus {
+    /// Waiting for peer's response (we do not accept file chunks yet)
+    WaitingForPeerResponse,
+    /// The file transfer is in progress (we can accept file chunks now)
     InProgress,
+    /// The file transfer is completed
     Completed,
+    /// The file transfer is cancelled (but was accepted)
     Cancelled,
+    /// The file transfer failed
     Error(String),
 }
 
