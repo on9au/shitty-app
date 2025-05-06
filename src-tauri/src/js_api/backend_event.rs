@@ -1,5 +1,8 @@
 use serde::{Deserialize, Serialize};
 use ts_rs::TS;
+use uuid::Uuid;
+
+use crate::backend::peer_manager::PeerInfo;
 
 use super::frontend_event::FrontendEvent;
 
@@ -111,6 +114,16 @@ pub struct ConnectionInfo {
     // pub identitiy: String,
 }
 
+impl From<ConnectionInfo> for PeerInfo {
+    fn from(info: ConnectionInfo) -> Self {
+        PeerInfo {
+            name: info.name,
+            backend_version: info.backend_version,
+            // ecdsa_public_key: info.identitiy,
+        }
+    }
+}
+
 /// Struct representing a connection request rejection.
 #[derive(Debug, Clone, Serialize, Deserialize, TS)]
 #[ts(export)]
@@ -141,8 +154,8 @@ pub struct FileOffer {
     pub peer: ConnectionInfo,
     /// The filename of the file being offered.
     pub filename: String,
-    /// A unique identifier for the file.
-    pub unique_id: u64,
+    /// A unique identifier for the file. (UUID)
+    pub unique_id: String,
     /// The size of the file in bytes.
     pub size: u64,
 }
@@ -151,16 +164,16 @@ pub struct FileOffer {
 #[derive(Debug, Clone, Serialize, Deserialize, TS)]
 #[ts(export)]
 pub struct FileTransferComplete {
-    /// The unique identifier of the file that was transferred.
-    pub unique_id: u64,
+    /// The unique identifier of the file that was transferred. (UUID)
+    pub unique_id: String,
 }
 
 /// Struct representing a file transfer error.
 #[derive(Debug, Clone, Serialize, Deserialize, TS)]
 #[ts(export)]
 pub struct FileTransferError {
-    /// The unique identifier of the file that had an error.
-    pub unique_id: u64,
+    /// The unique identifier of the file that had an error. (UUID)
+    pub unique_id: String,
     /// The error message.
     pub message: String,
 }
@@ -169,8 +182,8 @@ pub struct FileTransferError {
 #[derive(Debug, Clone, Serialize, Deserialize, TS)]
 #[ts(export)]
 pub struct FileTransferProgress {
-    /// The unique identifier of the file being transferred.
-    pub unique_id: u64,
+    /// The unique identifier of the file being transferred. (UUID)
+    pub unique_id: String,
     /// The number of bytes transferred so far.
     pub bytes_transferred: u64,
     /// The total number of bytes to transfer.

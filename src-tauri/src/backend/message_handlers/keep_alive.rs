@@ -14,10 +14,7 @@ impl PeerManager {
         let peers = self.active_peers.lock().await;
         // If the peer is not found, they have already disconnected, return.
         if let Some(peer) = peers.get(&peer_addr) {
-            peer.tx
-                .send(Message::KeepAlive)
-                .await
-                .expect("Failed to send KeepAlive message to the peer");
+            peer.tx.send(Message::KeepAlive).await.ok(); // We ignore the error here, as the peer may have already disconnected.
         }
     }
 }

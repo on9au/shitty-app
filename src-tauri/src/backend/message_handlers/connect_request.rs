@@ -4,7 +4,7 @@ use std::net::SocketAddr;
 
 use crate::{
     backend::{
-        peer_manager::{PeerInfo, PeerManager, PeerState},
+        peer_manager::{PeerManager, PeerState},
         protocol::{ConnectionInfo, Message},
     },
     js_api::backend_event::{self, BackendEvent},
@@ -41,11 +41,7 @@ impl PeerManager {
             let mut peers = self.active_peers.lock().await;
             if let Some(peer) = peers.get_mut(&peer_addr) {
                 peer.state = PeerState::Connected {
-                    peer_info: Some(PeerInfo {
-                        name: connection_info.name,
-                        backend_version: connection_info.backend_version,
-                        // ecdsa_public_key: connection_info.identitiy.public_key,
-                    }),
+                    peer_info: Some(connection_info.into()),
                 };
             }
         }

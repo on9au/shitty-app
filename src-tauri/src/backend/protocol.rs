@@ -17,6 +17,8 @@ use bincode::config::{self, Configuration};
 use once_cell::sync::Lazy;
 use uuid::Uuid;
 
+use super::peer_manager::PeerInfo;
+
 /// Bincode v2 Configuration static
 pub static BINCODE_CONFIG: Lazy<Configuration> = Lazy::new(|| {
     config::standard()
@@ -72,6 +74,16 @@ pub struct ConnectionInfo {
     pub backend_version: String,
     // /// The ECDSA public key of the peer
     // pub identitiy: EcdsaConnectionInfo,
+}
+
+impl From<ConnectionInfo> for PeerInfo {
+    fn from(info: ConnectionInfo) -> Self {
+        PeerInfo {
+            name: info.name,
+            backend_version: info.backend_version,
+            // ecdsa_public_key: info.identitiy,
+        }
+    }
 }
 
 #[derive(Debug, bincode::Encode, bincode::Decode)]

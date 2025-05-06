@@ -27,11 +27,7 @@ impl PeerManager {
                     if let PeerState::Connected { .. } = &mut peer.state {
                         // Update the peer state to `Authenticated`
                         peer.state = PeerState::Authenticated {
-                            peer_info: PeerInfo {
-                                name: identitiy.name,
-                                // ecdsa_public_key: identitiy.identitiy.public_key,
-                                backend_version: identitiy.backend_version,
-                            },
+                            peer_info: identitiy.into(),
                         };
 
                         // Send an event to the frontend to notify the user that the connection was accepted.

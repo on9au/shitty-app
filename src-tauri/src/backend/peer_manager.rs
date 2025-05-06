@@ -39,13 +39,21 @@ pub enum FileTransferDirection {
 /// Represents the state of a file transfer.
 #[derive(Debug)]
 pub struct FileTransferState {
+    /// Unique ID of the file transfer
     pub unique_id: Uuid,
+    /// IP/Socket address of the peer
     pub peer_addr: std::net::SocketAddr,
+    /// Direction of the file transfer
     pub direction: FileTransferDirection,
+    /// The file handle of the file being transferred
     pub filename: String,
+    /// The size of the file being transferred
     pub total_size: u64,
+    /// The number of bytes transferred so far
     pub bytes_transferred: u64,
+    /// The length of the chunks being transferred
     pub chunk_len: u64,
+    /// The status of the file transfer
     pub status: FileTransferStatus,
     // Optionally: file handles, checksums, etc.
 }
@@ -124,6 +132,18 @@ pub struct PeerInfo {
     // pub ecdsa_public_key: Vec<u8>,
     /// The Backend version of the peer
     pub backend_version: String,
+}
+
+impl PeerInfo {
+    /// Convert PeerInfo to ConnectionInfo
+    pub fn into_connection_info(&self, peer_addr: SocketAddr) -> ConnectionInfo {
+        ConnectionInfo {
+            name: self.name.clone(),
+            ip: peer_addr.ip().to_string(),
+            backend_version: self.backend_version.clone(),
+            // identitiy: BASE64_STANDARD.encode(&self.ecdsa_public_key),
+        }
+    }
 }
 
 impl PeerManager {
@@ -508,7 +528,9 @@ impl PeerManager {
                 self.handle_immediate_connection_close(disconnect_request, peer_addr)
                     .await;
             }
-            Message::FileOfferRequest(_file_offer) => todo!(),
+            Message::FileOfferRequest(file_offer) => {
+                self.handle_file_offer_request(file_offer, peer_addr).await;
+            }
             Message::FileOfferResponse(_file_offer_response) => todo!(),
             Message::FileChunk(_file_chunk) => todo!(),
             Message::FileChunkAck(_file_chunk_ack) => todo!(),
