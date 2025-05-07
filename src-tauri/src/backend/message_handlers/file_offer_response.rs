@@ -1,4 +1,4 @@
-use std::net::SocketAddr;
+use std::{net::SocketAddr, sync::Arc};
 
 use crate::backend::{
     peer_manager::{FileTransferDirection, FileTransferStatus, PeerManager, PeerState},
@@ -38,8 +38,35 @@ impl PeerManager {
                         .await
                         .get_mut(&file_offer_response.unique_id)
                     {
-                        // We cannot "accept" a file response if we are the one receiving the file.
-                        if transfer_state.direction == FileTransferDirection::Receiving {
+                        if let FileTransferDirection::Sending { file_path } =
+                            &transfer_state.direction
+                        {
+                            // We are the one sending the file.
+                            // Was the request accepted?
+                            if file_offer_response.accept {
+                                // Open the file for reading
+                                let file_handle = Arc::new(
+                                    tokio::fs::File::open(file_path).await.unwrap_or_else(|e| {
+                                        // Failed to open the file, update the transfer state to "Error"
+                                        transfer_state.status = FileTransferStatus::Error(format!(
+                                            "Failed to open file: {}",
+                                            e
+                                        ));
+                                        // TODO: Handle the error properly
+                                        panic!("Failed to open file: {}", e);
+                                    }),
+                                );
+
+                                // Update the transfer state to "InProgress"
+                                transfer_state.status = FileTransferStatus::InProgress {
+                                    file_handle: file_handle.clone(),
+                                };
+                            } else {
+                                // Update the transfer state to "Rejected"
+                                transfer_state.status = FileTransferStatus::Rejected;
+                            }
+                        } else {
+                            // We cannot "accept" a file response if we are the one receiving the file.
                             self.drop_peer(
                                 peer_addr,
                                 Some("Cannot accept file response while receiving".to_string()),
@@ -52,17 +79,6 @@ impl PeerManager {
                             );
 
                             return;
-                        }
-
-                        // Was the request accepted?
-                        if file_offer_response.accept {
-                            // Update the transfer state to "InProgress"
-                            transfer_state.status = FileTransferStatus::InProgress;
-
-                            // TODO: Begin the file transfer
-                        } else {
-                            // Update the transfer state to "Rejected"
-                            transfer_state.status = FileTransferStatus::Rejected;
                         }
                     }
                 }

@@ -94,7 +94,9 @@ impl FrontendManager {
                         crate::backend::peer_manager::FileTransferState {
                             unique_id,
                             peer_addr,
-                            direction: FileTransferDirection::Sending,
+                            direction: FileTransferDirection::Sending {
+                                file_path: transmit_file.path,
+                            },
                             filename: transmit_file.filename,
                             total_size: size,
                             bytes_transferred: 0,

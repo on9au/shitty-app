@@ -32,7 +32,10 @@ pub struct PeerManager {
 /// File Transfer Direction
 #[derive(Debug, PartialEq)]
 pub enum FileTransferDirection {
-    Sending,
+    Sending {
+        /// The file path of the file being sent
+        file_path: String,
+    },
     Receiving,
 }
 
@@ -64,7 +67,10 @@ pub enum FileTransferStatus {
     /// Waiting for peer's response (we do not accept file chunks yet)
     WaitingForPeerResponse,
     /// The file transfer is in progress (we can accept file chunks now)
-    InProgress,
+    InProgress {
+        /// Handle to file being transferred
+        file_handle: Arc<tokio::fs::File>,
+    },
     /// The file transfer is completed
     Completed,
     /// The file transfer is cancelled (but was accepted)

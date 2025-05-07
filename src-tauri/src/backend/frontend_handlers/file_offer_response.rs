@@ -1,3 +1,4 @@
+use tokio::fs;
 use uuid::Uuid;
 
 use crate::{
@@ -41,7 +42,7 @@ impl FrontendManager {
 
         if let Some(transfer) = active_transfers.get_mut(&unique_id) {
             // We cannot "accept" a file offer if we are the one sending the file.
-            if transfer.direction == FileTransferDirection::Sending {
+            if let FileTransferDirection::Sending { .. } = transfer.direction {
                 self.peer_manager
                     .backend_event_tx
                     .send(BackendEvent::BadFrontendEvent(BadFrontendEvent {
@@ -77,7 +78,26 @@ impl FrontendManager {
                 if file_offer_response.accept {
                     // Accepted!
                     // We can accept file chunks from the peer now!
-                    transfer.status = FileTransferStatus::InProgress;
+                    // Create a file handle for the incoming file transfer
+                    let file_handle = match fs::File::create(&transfer.filename).await {
+                        Ok(file_handle) => file_handle,
+                        Err(e) => {
+                            // Notify frontend of error
+                            self.peer_manager
+                                .backend_event_tx
+                                .send(BackendEvent::BadFrontendEvent(BadFrontendEvent {
+                                    event: FrontendEvent::FileOfferResponse(file_offer_response),
+                                    error: format!("Failed to create file handle: {}", e),
+                                }))
+                                .await
+                                .expect("Failed to send BadFrontendEvent event to the backend");
+                            return;
+                        }
+                    };
+
+                    transfer.status = FileTransferStatus::InProgress {
+                        file_handle: file_handle.into(),
+                    };
                 } else {
                     // Rejected.
                     // Change the transfer state to "Rejected"
