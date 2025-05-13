@@ -77,8 +77,6 @@ impl PeerManager {
                             transfer_state.status = FileTransferStatus::Error(
                                 "Cannot accept file response while receiving".to_string(),
                             );
-
-                            return;
                         }
                     }
                 }
